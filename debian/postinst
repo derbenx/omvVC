@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ]; then
+    # Ensure our wrapper scripts are executable
+    chmod +x /usr/sbin/vcm.sh
+    chmod +x /usr/sbin/vcd.sh
+    chmod +x /usr/sbin/vcu.sh
+
+    # Force OMV config database populate/register
+    if [ -x "/usr/sbin/omv-confdbadm" ]; then
+        omv-confdbadm populate
+    fi
+fi
+
+#DEBHELPER#
+
+exit 0

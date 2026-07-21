@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "purge" ]; then
+    # Clean up script files on purge
+    rm -f /usr/sbin/vcm.sh /usr/sbin/vcd.sh /usr/sbin/vcu.sh
+fi
+
+#DEBHELPER#
+
+exit 0

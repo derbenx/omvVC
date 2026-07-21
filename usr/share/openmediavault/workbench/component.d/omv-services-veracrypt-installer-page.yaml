@@ -1,0 +1,42 @@
+version: "1.0"
+type: component
+data:
+  name: omv-services-veracrypt-installer-page
+  type: formPage
+  config:
+    request:
+      service: VeraCrypt
+      get:
+        method: getStatus
+    fields:
+      - type: checkbox
+        name: installed
+        label: _("VeraCrypt Package Installed")
+        value: false
+        readonly: true
+        hint: _("Checked if the 'veracrypt' executable is currently installed and available in the system.")
+    buttons:
+      - id: install
+        text: _("Install VeraCrypt")
+        icon: "mdi:package-variant-plus"
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Installing VeraCrypt ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: installVeraCrypt
+      - id: remove
+        text: _("Remove/Purge VeraCrypt")
+        icon: "mdi:package-variant-minus"
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Removing VeraCrypt ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: removeVeraCrypt

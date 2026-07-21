@@ -1,0 +1,19 @@
+version: "1.0"
+type: component
+data:
+  name: omv-services-veracrypt-help-page
+  type: textPage
+  config:
+    text: |
+      ### VeraCrypt OpenMediaVault Plugin Help & Best Practices
+
+      This plugin helps you manage and mount encrypted VeraCrypt file containers or physical partition drives.
+
+      #### Best Practices
+      - **End Point Folder (Mountpoint):** This works best if the end point folder is on a drive already shared in `/srv/dev-disk-by-uuid-##/folder`.
+      - **Drive Mounting:** Select the **Drive** type and supply the device name or path (e.g., `sdc1` or `/dev/sdc1`), along with the password and desired permissions (e.g., `777`, `770`, `755`).
+      - **File Mounting:** Select the **File** type and configure the container location directory, file container name, and the mount point endpoint folder.
+      - **Dynamic Permissions:** Permissions are specified using standard octal formats (e.g., `777`, `770`, `755`). The plugin automatically translates these into VeraCrypt secure `umask` configurations on mount.
+
+      #### Dynamic VeraCrypt Installation
+      - You can install or remove the underlying `veracrypt` executable package at any time using the **VeraCrypt Installer** tab.

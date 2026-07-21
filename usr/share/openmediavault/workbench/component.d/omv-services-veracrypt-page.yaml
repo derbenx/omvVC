@@ -1,0 +1,13 @@
+version: "1.0"
+type: component
+data:
+  name: omv-services-veracrypt-page
+  type: tabsPage
+  config:
+    tabs:
+      - name: _("Profiles")
+        component: omv-services-veracrypt-profiles-page
+      - name: _("VeraCrypt Installer")
+        component: omv-services-veracrypt-installer-page
+      - name: _("Help")
+        component: omv-services-veracrypt-help-page

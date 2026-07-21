@@ -1,0 +1,5 @@
+openmediavault-veracrypt (1.0.0) stable; urgency=low
+
+  * Initial release.
+
+ -- OMV Plugin Developer <plugins@omv-extras.org>  Sun, 21 Jul 2026 12:00:00 +0000

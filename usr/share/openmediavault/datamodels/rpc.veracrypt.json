@@ -1,0 +1,137 @@
+[
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.get",
+		"params": {
+			"type": "object",
+			"properties": {}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.set",
+		"params": {
+			"type": "object",
+			"properties": {
+				"enable": {
+					"type": "boolean"
+				}
+			}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.setProfile",
+		"params": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"format": "uuidv4",
+					"required": true
+				},
+				"name": {
+					"type": "string",
+					"required": true
+				},
+				"type": {
+					"type": "string",
+					"enum": ["file", "drive"],
+					"required": true
+				},
+				"container_location": {
+					"type": "string",
+					"required": true
+				},
+				"endpoint_folder": {
+					"type": "string",
+					"required": true
+				},
+				"password": {
+					"type": "string"
+				},
+				"filename": {
+					"type": "string"
+				},
+				"permissions": {
+					"type": "string"
+				},
+				"remember_configs": {
+					"type": "boolean"
+				}
+			}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.deleteProfile",
+		"params": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"format": "uuidv4",
+					"required": true
+				}
+			}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.mount",
+		"params": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"format": "uuidv4",
+					"required": true
+				}
+			}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.unmount",
+		"params": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"format": "uuidv4",
+					"required": true
+				}
+			}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.install_veracrypt",
+		"params": {
+			"type": "object",
+			"properties": {}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.remove_veracrypt",
+		"params": {
+			"type": "object",
+			"properties": {}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.get_status",
+		"params": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"format": "uuidv4",
+					"required": false
+				}
+			}
+		}
+	}
+]
