@@ -7,6 +7,11 @@ if [ "$1" = "configure" ]; then
     chmod +x /usr/sbin/vcm.sh
     chmod +x /usr/sbin/vcd.sh
     chmod +x /usr/sbin/vcu.sh
+
+    # Restart openmediavault-engined so it registers the new RPC and UI manifests immediately
+    if [ -x "/bin/systemctl" ]; then
+        systemctl restart openmediavault-engined.service || true
+    fi
 fi
 
 #DEBHELPER#
