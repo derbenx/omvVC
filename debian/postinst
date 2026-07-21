@@ -2,18 +2,35 @@
 
 set -e
 
-if [ "$1" = "configure" ]; then
-    # Ensure our wrapper scripts are executable
-    chmod +x /usr/sbin/vcm.sh
-    chmod +x /usr/sbin/vcd.sh
-    chmod +x /usr/sbin/vcu.sh
+. /etc/default/openmediavault
+. /usr/share/openmediavault/scripts/helper-functions
 
-    # Restart openmediavault-engined so it registers the new RPC and UI manifests immediately
-    if [ -x "/bin/systemctl" ]; then
-        systemctl restart openmediavault-engined.service || true
-    fi
-fi
+case "$1" in
+    configure)
+        # Ensure our wrapper scripts are executable
+        chmod +x /usr/sbin/vcm.sh
+        chmod +x /usr/sbin/vcd.sh
+        chmod +x /usr/sbin/vcu.sh
 
-#DEBHELPER#
+        # Initialize config database node for VeraCrypt
+        echo "Updating configuration database ..."
+        omv-confdbadm create "conf.service.veracrypt" || :
+
+        # Restart openmediavault-engined so it registers the new RPC classes immediately
+        if [ -x "/bin/systemctl" ]; then
+            systemctl restart openmediavault-engined.service || true
+        fi
+
+        # Activate package triggers to compile and render Angular Web UI workbench manifests
+        echo "Updating Web UI workbench cache ..."
+        dpkg-trigger update-workbench
+        ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+    *)
+        echo "postinst called with unknown argument" >&2
+        exit 1
+        ;;
+esac
 
 exit 0
