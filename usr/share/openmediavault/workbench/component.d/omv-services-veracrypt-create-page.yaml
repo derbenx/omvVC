@@ -1,0 +1,75 @@
+version: "1.0"
+type: component
+data:
+  name: omv-services-veracrypt-create-page
+  type: formPage
+  config:
+    request:
+      service: VeraCrypt
+      get:
+        method: getStatus
+    fields:
+      - type: textInput
+        name: path
+        label: _("Target Container File / Partition Device Path")
+        value: ""
+        required: true
+        hint: _("Examples: /srv/dev-disk-by-uuid-##/secure.vc (for a file container) or /dev/sdc1 (for a drive partition).")
+      - type: textInput
+        name: size
+        label: _("Volume Size")
+        value: "500M"
+        required: true
+        hint: _("Examples: 500M (for 500 Megabytes), 10G (for 10 Gigabytes), or 'max' to use the full drive partition.")
+      - type: passwordInput
+        name: password
+        label: _("VeraCrypt Passphrase")
+        value: ""
+        required: true
+      - type: select
+        name: filesystem
+        label: _("Filesystem Format")
+        value: "exFAT"
+        store:
+          data:
+            - ["exFAT", _("exFAT (Highly Recommended, Cross-Platform)")]
+            - ["FAT", _("FAT32 (Max Compatibility, 4GB file size limit)")]
+            - ["ext4", _("ext4 (Linux Only, Native Performance)")]
+            - ["NTFS", _("NTFS (Windows & Linux compatibility)")]
+      - type: select
+        name: encryption
+        label: _("Encryption Algorithm")
+        value: "AES"
+        store:
+          data:
+            - ["AES", _("AES (Hardware Accelerated, Best Performance)")]
+            - ["Serpent", _("Serpent")]
+            - ["Twofish", _("Twofish")]
+      - type: select
+        name: hash
+        label: _("Hash Algorithm")
+        value: "sha-512"
+        store:
+          data:
+            - ["sha-512", _("SHA-512")]
+            - ["whirlpool", _("Whirlpool")]
+    buttons:
+      - id: create
+        text: _("Create & Format Volume")
+        icon: "mdi:plus-circle-outline"
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Creating VeraCrypt Encrypted Volume ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: createContainer
+                params:
+                  path: "{{ path }}"
+                  size: "{{ size }}"
+                  password: "{{ password }}"
+                  filesystem: "{{ filesystem }}"
+                  encryption: "{{ encryption }}"
+                  hash: "{{ hash }}"

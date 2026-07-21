@@ -37,6 +37,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("deleteProfile");
         $this->registerMethod("mount");
         $this->registerMethod("unmount");
+        $this->registerMethod("createContainer");
         $this->registerMethod("installVeraCrypt");
         $this->registerMethod("removeVeraCrypt");
         $this->registerMethod("getStatus");
@@ -57,6 +58,20 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
         $db = \OMV\Config\Database::getInstance();
         $object = $db->get("conf.service.veracrypt");
+
+        // Handle profile modifications (e.g. if remember_configs is false, clear fields)
+        if (isset($params['profiles']) && isset($params['profiles']['profile'])) {
+            $profiles = [];
+            foreach ($params['profiles']['profile'] as $profile) {
+                if (isset($profile['remember_configs']) && !$profile['remember_configs']) {
+                    // Turn off remember configs: forget password and other sensitive fields
+                    $profile['password'] = "";
+                }
+                $profiles[] = $profile;
+            }
+            $params['profiles']['profile'] = $profiles;
+        }
+
         $object->setAssoc($params);
         $db->set($object);
         return $object->getAssoc();
@@ -204,6 +219,53 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $db->set($object);
 
         return ["uuid" => $uuid, "success" => true];
+    }
+
+    public function createContainer($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.veracrypt.createContainer");
+
+        $path = $params['path'];
+        $size = isset($params['size']) ? $params['size'] : '500M';
+        $password = isset($params['password']) ? $params['password'] : '';
+        $filesystem = isset($params['filesystem']) ? $params['filesystem'] : 'exFAT';
+        $encryption = isset($params['encryption']) ? $params['encryption'] : 'AES';
+        $hash = isset($params['hash']) ? $params['hash'] : 'sha-512';
+
+        return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) use ($path, $size, $password, $filesystem, $encryption, $hash) {
+            // Determine create arguments
+            $args = [
+                "-t",
+                "--non-interactive",
+                "--create",
+                $path,
+                "--size",
+                $size,
+                "--encryption",
+                $encryption,
+                "--hash",
+                $hash,
+                "--filesystem",
+                $filesystem,
+                "--password",
+                $password,
+                "--pim=0",
+                "--keyfiles=",
+                "--volume-type",
+                "normal",
+                "--random-source",
+                "/dev/urandom"
+            ];
+
+            $cmd = new \OMV\System\Process("veracrypt", $args);
+            $cmd->setRedirect2to1();
+            $cmdLine = $cmd->getCommandLine();
+            if (0 !== $this->exec($cmdLine, $output, $bgOutputFilename)) {
+                throw new \OMV\ExecException($cmdLine, $output);
+            }
+            return $output;
+        });
     }
 
     public function mount($params, $context)

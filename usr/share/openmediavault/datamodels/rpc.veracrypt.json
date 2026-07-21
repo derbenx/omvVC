@@ -78,6 +78,38 @@
 	},
 	{
 		"type": "rpc",
+		"id": "rpc.veracrypt.createContainer",
+		"params": {
+			"type": "object",
+			"properties": {
+				"path": {
+					"type": "string",
+					"required": true
+				},
+				"size": {
+					"type": "string",
+					"required": true
+				},
+				"password": {
+					"type": "string"
+				},
+				"filesystem": {
+					"type": "string",
+					"enum": ["FAT", "exFAT", "ext4", "NTFS"]
+				},
+				"encryption": {
+					"type": "string",
+					"enum": ["AES", "Serpent", "Twofish"]
+				},
+				"hash": {
+					"type": "string",
+					"enum": ["sha-512", "whirlpool"]
+				}
+			}
+		}
+	},
+	{
+		"type": "rpc",
 		"id": "rpc.veracrypt.mount",
 		"params": {
 			"type": "object",

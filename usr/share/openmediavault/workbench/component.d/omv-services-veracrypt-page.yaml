@@ -7,6 +7,8 @@ data:
     tabs:
       - name: _("Profiles")
         component: omv-services-veracrypt-profiles-page
+      - name: _("Create Volume")
+        component: omv-services-veracrypt-create-page
       - name: _("VeraCrypt Installer")
         component: omv-services-veracrypt-installer-page
       - name: _("Help")

@@ -1,0 +1,34 @@
+VeraCrypt OpenMediaVault 8 Plugin - Package Build Guide
+======================================================
+
+This guide explains how to build the 'openmediavault-veracrypt' Debian package (.deb) from this source repository.
+
+
+Prerequisites & Dependencies
+----------------------------
+To build the package, you need a Debian-based environment (e.g., Debian 12/13 or Ubuntu) with the following tools installed:
+
+  sudo apt-get update
+  sudo apt-get install -y git build-essential devscripts debhelper fakeroot
+
+
+Building the Package
+--------------------
+To compile the source code, organize assets, and build the installable package, run the following command from the root of this repository:
+
+  dpkg-buildpackage -us -uc -b
+
+Notes:
+- The above command will generate the package and drop the resulting '.deb' file in the directory immediately above the repository root (i.e. '..').
+- If building in an environment without pre-configured build dependencies, you can bypass dependency verification by passing the '-d' option:
+  dpkg-buildpackage -us -uc -b -d
+
+
+Installing the Plugin
+---------------------
+Once the package has built successfully, you can install the generated '.deb' package on your OpenMediaVault server using 'dpkg':
+
+  sudo dpkg -i ../openmediavault-veracrypt_1.0.0_all.deb
+  sudo apt-get install -f -y
+
+After installation, reload your web browser (Ctrl+Shift+R) and click on the 'VeraCrypt' item under 'Services' in the OpenMediaVault side menu.
