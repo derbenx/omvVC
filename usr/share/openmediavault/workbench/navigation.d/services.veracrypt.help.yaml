@@ -1,0 +1,8 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "services.veracrypt.help"
+  text: _("Help")
+  position: 40
+  icon: "mdi:help-circle-outline"
+  url: "/services/veracrypt/help"

@@ -1,0 +1,6 @@
+version: "1.0"
+type: route
+data:
+  url: "/services/veracrypt/create"
+  title: _("Create Volume")
+  component: omv-services-veracrypt-create-page
