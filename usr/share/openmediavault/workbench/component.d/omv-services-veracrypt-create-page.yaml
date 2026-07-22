@@ -6,8 +6,6 @@ data:
   config:
     request:
       service: VeraCrypt
-      get:
-        method: getStatus
     fields:
       - type: textInput
         name: path
