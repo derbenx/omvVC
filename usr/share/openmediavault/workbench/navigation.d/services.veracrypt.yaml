@@ -4,4 +4,4 @@ data:
   path: "services.veracrypt"
   text: _("VeraCrypt")
   icon: "mdi:lock-open-outline"
-  url: "/services/veracrypt/profiles"
+  url: "/services/veracrypt"

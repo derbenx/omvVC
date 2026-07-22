@@ -3,7 +3,7 @@
 	"id": "conf.service.veracrypt",
 	"title": "VeraCrypt",
 	"queryinfo": {
-		"xpath": "//services/veracrypt",
+		"xpath": "/config/services/veracrypt",
 		"iterable": false
 	},
 	"properties": {
@@ -22,6 +22,10 @@
 							"uuid": {
 								"type": "string",
 								"format": "uuidv4"
+							},
+							"shared_folder_uuid": {
+								"type": "string",
+								"default": ""
 							},
 							"name": {
 								"type": "string"

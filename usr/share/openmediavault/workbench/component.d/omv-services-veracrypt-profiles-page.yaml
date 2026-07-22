@@ -72,12 +72,22 @@ data:
                   data:
                     - ["file", _("File Container")]
                     - ["drive", _("Partition Drive")]
+              - type: select
+                name: shared_folder_uuid
+                label: _("Select Shared Folder (Optional)")
+                value: ""
+                store:
+                  proxy:
+                    service: ShareFolder
+                    get:
+                      method: enumerateSharedFolders
+                hint: _("Choose an existing Shared Folder to use as the base path.")
               - type: textInput
                 name: container_location
                 label: _("Container Location / Drive Partition")
                 value: ""
                 required: true
-                hint: "_('Enter parent path to file container, or device name/path (e.g., sdc1 or /dev/sdc1).')"
+                hint: _("Enter the parent path to the file container, or a device partition name such as sdc1.")
               - type: textInput
                 name: filename
                 label: _("File Container Name")
@@ -94,7 +104,7 @@ data:
                 label: _("Endpoint Folder (Mountpoint)")
                 value: ""
                 required: true
-                hint: "_('Absolute path, e.g., /srv/dev-disk-by-uuid-##/folder')"
+                hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
               - type: passwordInput
                 name: password
                 label: _("VeraCrypt Password")
@@ -103,7 +113,7 @@ data:
                 name: permissions
                 label: _("Permissions (Standard Octal)")
                 value: "777"
-                hint: "_('Examples: 777 (completely public), 770 (group-accessible), or 755 (read-only for others)')"
+                hint: _("Examples include 777 (completely public), 770 (group-accessible), or 755 (read-only for others).")
               - type: checkbox
                 name: remember_configs
                 label: _("Remember Configurations & Credentials")
@@ -142,11 +152,22 @@ data:
                   data:
                     - ["file", _("File Container")]
                     - ["drive", _("Partition Drive")]
+              - type: select
+                name: shared_folder_uuid
+                label: _("Select Shared Folder (Optional)")
+                value: "{{ _selected[0].shared_folder_uuid }}"
+                store:
+                  proxy:
+                    service: ShareFolder
+                    get:
+                      method: enumerateSharedFolders
+                hint: _("Choose an existing Shared Folder to use as the base path.")
               - type: textInput
                 name: container_location
                 label: _("Container Location / Drive Partition")
                 value: "{{ _selected[0].container_location }}"
                 required: true
+                hint: _("Enter the parent path to the file container, or a device partition name such as sdc1.")
               - type: textInput
                 name: filename
                 label: _("File Container Name")
@@ -163,6 +184,7 @@ data:
                 label: _("Endpoint Folder (Mountpoint)")
                 value: "{{ _selected[0].endpoint_folder }}"
                 required: true
+                hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
               - type: passwordInput
                 name: password
                 label: _("VeraCrypt Password")
@@ -171,6 +193,7 @@ data:
                 name: permissions
                 label: _("Permissions")
                 value: "{{ _selected[0].permissions }}"
+                hint: _("Examples include 777 (completely public), 770 (group-accessible), or 755 (read-only for others).")
               - type: checkbox
                 name: remember_configs
                 label: _("Remember Configurations & Credentials")
@@ -195,6 +218,7 @@ data:
       - type: iconButton
         icon: mdi:play-circle-outline
         tooltip: _("Mount Selected Profile")
+        enabledBind: "oneSelected && _selected[0].installed"
         execute:
           type: request
           request:
@@ -205,6 +229,7 @@ data:
       - type: iconButton
         icon: mdi:stop-circle-outline
         tooltip: _("Unmount Selected Profile")
+        enabledBind: "oneSelected && _selected[0].installed"
         execute:
           type: request
           request:

@@ -6,24 +6,77 @@ data:
   config:
     request:
       service: VeraCrypt
+      get:
+        method: getStatus
     fields:
+      - type: checkbox
+        name: installed
+        label: _("VeraCrypt Status Check")
+        value: false
+        readonly: true
+        hint: _("VeraCrypt is not installed on this system. You must install it from the 'VeraCrypt Installer' tab first.")
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: false
+      - type: select
+        name: shared_folder_uuid
+        label: _("Select Shared Folder (Optional)")
+        value: ""
+        store:
+          proxy:
+            service: ShareFolder
+            get:
+              method: enumerateSharedFolders
+        hint: _("Choose an existing Shared Folder to use as the base path.")
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
       - type: textInput
         name: path
         label: _("Target Container File / Partition Device Path")
         value: ""
         required: true
-        hint: "_('Examples: /srv/dev-disk-by-uuid-##/secure.vc (for a file container) or /dev/sdc1 (for a drive partition).')"
+        hint: _("Examples include secure.vc (when a shared folder is selected above) or an absolute path such as /dev/sdc1.")
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
       - type: textInput
         name: size
         label: _("Volume Size")
         value: "500M"
         required: true
-        hint: "_('Examples: 500M (for 500 Megabytes), 10G (for 10 Gigabytes), or max to use the full drive partition.')"
+        hint: _("Examples include 500M for 500 Megabytes, 10G for 10 Gigabytes, or max to use the full drive partition.")
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
       - type: passwordInput
         name: password
         label: _("VeraCrypt Passphrase")
         value: ""
         required: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
       - type: select
         name: filesystem
         label: _("Filesystem Format")
@@ -34,6 +87,13 @@ data:
             - ["FAT", _("FAT32 (Max Compatibility, 4GB file size limit)")]
             - ["ext4", _("ext4 (Linux Only, Native Performance)")]
             - ["NTFS", _("NTFS (Windows & Linux compatibility)")]
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
       - type: select
         name: encryption
         label: _("Encryption Algorithm")
@@ -43,6 +103,13 @@ data:
             - ["AES", _("AES (Hardware Accelerated, Best Performance)")]
             - ["Serpent", _("Serpent")]
             - ["Twofish", _("Twofish")]
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
       - type: select
         name: hash
         label: _("Hash Algorithm")
@@ -51,10 +118,24 @@ data:
           data:
             - ["sha-512", _("SHA-512")]
             - ["whirlpool", _("Whirlpool")]
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
     buttons:
       - id: create
         text: _("Create & Format Volume")
         icon: "mdi:plus-circle-outline"
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
         execute:
           type: taskDialog
           taskDialog:
@@ -71,3 +152,4 @@ data:
                   filesystem: "{{ filesystem }}"
                   encryption: "{{ encryption }}"
                   hash: "{{ hash }}"
+                  shared_folder_uuid: "{{ shared_folder_uuid }}"

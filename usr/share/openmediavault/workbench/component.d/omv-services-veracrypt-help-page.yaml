@@ -20,7 +20,7 @@ data:
 
           1. Solving the '500 - Internal Server Error' (XPath)
           --------------------------------------------------
-          If you encounter a 500 error stating "Failed to execute XPath query '//services/veracrypt'", this means OMV's XML database has not been initialized with the default VeraCrypt configuration.
+          If you encounter a 500 error stating "Failed to execute XPath query '/config/services/veracrypt'", this means OMV's XML database has not been initialized with the default VeraCrypt configuration.
           To fix this instantly, log in to your OMV server via SSH as root and run:
 
             sudo omv-confdbadm create "conf.service.veracrypt"

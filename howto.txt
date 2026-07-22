@@ -38,7 +38,7 @@ Troubleshooting & Manual Setup
 
 1. Resolving the "500 - Internal Server Error" (Failed to execute XPath query)
 -----------------------------------------------------------------------------
-If you see an XPath error like "Failed to execute XPath query '//services/veracrypt'", this means OMV's XML database has not been initialized with the plugin's schema default node.
+If you see an XPath error like "Failed to execute XPath query '/config/services/veracrypt'", this means OMV's XML database has not been initialized with the plugin's schema default node.
 To fix this instantly, log in to your OMV server via SSH and execute:
 
   sudo omv-confdbadm create "conf.service.veracrypt"

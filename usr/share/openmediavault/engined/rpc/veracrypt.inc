@@ -77,6 +77,23 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         return $object->getAssoc();
     }
 
+    private function checkVeraCryptInstalled()
+    {
+        $installed = false;
+        if (file_exists("/usr/bin/veracrypt") || file_exists("/usr/sbin/veracrypt") || file_exists("/usr/local/bin/veracrypt")) {
+            $installed = true;
+        } else {
+            $cmdCheck = new \OMV\System\Process("which", ["veracrypt"]);
+            $cmdCheck->execute($output, $exitStatus);
+            if ($exitStatus === 0) {
+                $installed = true;
+            }
+        }
+        if (!$installed) {
+            throw new \OMV\Exception("VeraCrypt is not installed on this system. Please go to the 'VeraCrypt Installer' tab to install it first.");
+        }
+    }
+
     public function getProfileList($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
@@ -121,6 +138,21 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         foreach ($profilesList as $profile) {
             $containerLoc = isset($profile['container_location']) ? $profile['container_location'] : '';
             $endpoint = isset($profile['endpoint_folder']) ? $profile['endpoint_folder'] : '';
+            $sfUuid = isset($profile['shared_folder_uuid']) ? $profile['shared_folder_uuid'] : '';
+
+            if (!empty($sfUuid)) {
+                try {
+                    $sf = new \OMV\System\SharedFolder($sfUuid);
+                    $basePath = $sf->getAbspath();
+                    if (!empty($containerLoc)) {
+                        $containerLoc = build_path(DIRECTORY_SEPARATOR, $basePath, $containerLoc);
+                    } else {
+                        $containerLoc = $basePath;
+                    }
+                } catch (\Exception $e) {
+                    // fallback
+                }
+            }
 
             if (strpos($endpoint, '/') !== 0) {
                 if (!empty($containerLoc)) {
@@ -144,6 +176,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             }
 
             $profile['mounted'] = $mounted;
+            $profile['installed'] = $installed;
             $resultList[] = $profile;
         }
 
@@ -225,8 +258,20 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.createContainer");
+        $this->checkVeraCryptInstalled();
 
         $path = $params['path'];
+        $sharedFolderUuid = isset($params['shared_folder_uuid']) ? $params['shared_folder_uuid'] : '';
+        if (!empty($sharedFolderUuid)) {
+            try {
+                $sf = new \OMV\System\SharedFolder($sharedFolderUuid);
+                $basePath = $sf->getAbspath();
+                $path = build_path(DIRECTORY_SEPARATOR, $basePath, $path);
+            } catch (\Exception $e) {
+                // fallback
+            }
+        }
+
         $size = isset($params['size']) ? $params['size'] : '500M';
         $password = isset($params['password']) ? $params['password'] : '';
         $filesystem = isset($params['filesystem']) ? $params['filesystem'] : 'exFAT';
@@ -272,6 +317,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.mount");
+        $this->checkVeraCryptInstalled();
 
         $uuid = $params['uuid'];
         $db = \OMV\Config\Database::getInstance();
@@ -298,6 +344,21 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $password = isset($targetProfile['password']) ? $targetProfile['password'] : '';
         $filename = isset($targetProfile['filename']) ? $targetProfile['filename'] : '';
         $perm = isset($targetProfile['permissions']) ? $targetProfile['permissions'] : '777';
+        $sfUuid = isset($targetProfile['shared_folder_uuid']) ? $targetProfile['shared_folder_uuid'] : '';
+
+        if (!empty($sfUuid)) {
+            try {
+                $sf = new \OMV\System\SharedFolder($sfUuid);
+                $basePath = $sf->getAbspath();
+                if (!empty($containerLoc)) {
+                    $containerLoc = build_path(DIRECTORY_SEPARATOR, $basePath, $containerLoc);
+                } else {
+                    $containerLoc = $basePath;
+                }
+            } catch (\Exception $e) {
+                // fallback
+            }
+        }
 
         // Prepare absolute paths
         // Check if endpoint is an absolute path or relative to a shared folder
@@ -345,6 +406,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.unmount");
+        $this->checkVeraCryptInstalled();
 
         $uuid = $params['uuid'];
         $db = \OMV\Config\Database::getInstance();
@@ -367,6 +429,21 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
         $containerLoc = isset($targetProfile['container_location']) ? $targetProfile['container_location'] : '';
         $endpoint = isset($targetProfile['endpoint_folder']) ? $targetProfile['endpoint_folder'] : '';
+        $sfUuid = isset($targetProfile['shared_folder_uuid']) ? $targetProfile['shared_folder_uuid'] : '';
+
+        if (!empty($sfUuid)) {
+            try {
+                $sf = new \OMV\System\SharedFolder($sfUuid);
+                $basePath = $sf->getAbspath();
+                if (!empty($containerLoc)) {
+                    $containerLoc = build_path(DIRECTORY_SEPARATOR, $basePath, $containerLoc);
+                } else {
+                    $containerLoc = $basePath;
+                }
+            } catch (\Exception $e) {
+                // fallback
+            }
+        }
 
         if (strpos($endpoint, '/') !== 0) {
             if (!empty($containerLoc)) {
@@ -394,10 +471,9 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
 
         return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) {
-            // Run script or apt command to install VeraCrypt console (headless)
+            // Run helper installer script
             $cmd = new \OMV\System\Process("sh", [
-                "-c",
-                "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y veracrypt-console || apt-get install -y veracrypt || echo 'VeraCrypt headless installation completed.'"
+                "/usr/sbin/vci.sh"
             ]);
             $cmd->setRedirect2to1();
             $cmdLine = $cmd->getCommandLine();
