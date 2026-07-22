@@ -1,7 +1,8 @@
-VeraCrypt OpenMediaVault 8 Plugin - Package Build Guide
-======================================================
+VeraCrypt OpenMediaVault 8 Plugin - Package Build & Troubleshooting Guide
+========================================================================
 
-This guide explains how to build the 'openmediavault-veracrypt' Debian package (.deb) from this source repository.
+This guide explains how to build the 'openmediavault-veracrypt' Debian package (.deb),
+manually install veracrypt-console, and resolve common OMV configuration errors.
 
 
 Prerequisites & Dependencies
@@ -26,9 +27,33 @@ Notes:
 
 Installing the Plugin
 ---------------------
-Once the package has built successfully, you can install the generated '.deb' package on your OpenMediaVault server using 'dpkg':
+To install the generated '.deb' package on your OpenMediaVault server:
 
   sudo dpkg -i ../openmediavault-veracrypt_1.0.0_all.deb
   sudo apt-get install -f -y
 
-After installation, reload your web browser (Ctrl+Shift+R) and click on the 'VeraCrypt' item under 'Services' in the OpenMediaVault side menu.
+
+Troubleshooting & Manual Setup
+-----------------------------
+
+1. Resolving the "500 - Internal Server Error" (Failed to execute XPath query)
+-----------------------------------------------------------------------------
+If you see an XPath error like "Failed to execute XPath query '//services/veracrypt'", this means OMV's XML database has not been initialized with the plugin's schema default node.
+To fix this instantly, log in to your OMV server via SSH and execute:
+
+  sudo omv-confdbadm create "conf.service.veracrypt"
+
+This command directly populates and merges the required `<veracrypt>` configurations node into OMV's '/etc/openmediavault/config.xml' database.
+
+
+2. Manual Headless VeraCrypt Installation (veracrypt-console)
+-------------------------------------------------------------
+Because OpenMediaVault is a headless server, we only need the console-only (headless) version of VeraCrypt.
+If the automatic installer button in OMV fails to download or install the package, you can manually download and install the package for your Debian/Ubuntu version:
+
+  # Download the console deb package
+  wget https://launchpad.net/veracrypt/trunk/1.26.24/+download/veracrypt-console-1.26.24-Ubuntu-24.04-amd64.deb
+
+  # Install the package
+  sudo dpkg -i veracrypt-console-1.26.24-Ubuntu-24.04-amd64.deb
+  sudo apt-get install -f -y

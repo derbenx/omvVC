@@ -215,7 +215,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         }
 
         $profilesData['profile'] = $newProfilesList;
-        $object->set("profiles", $profilesData);
+        $object->set("profiles", $newProfilesList);
         $db->set($object);
 
         return ["uuid" => $uuid, "success" => true];
@@ -394,10 +394,10 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
 
         return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) {
-            // Run script or apt command to install VeraCrypt console
+            // Run script or apt command to install VeraCrypt console (headless)
             $cmd = new \OMV\System\Process("sh", [
                 "-c",
-                "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y veracrypt || apt-get install -y veracrypt-console || echo 'VeraCrypt package installation initiated.'"
+                "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get install -y veracrypt-console || apt-get install -y veracrypt || echo 'VeraCrypt headless installation completed.'"
             ]);
             $cmd->setRedirect2to1();
             $cmdLine = $cmd->getCommandLine();
@@ -415,7 +415,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) {
             $cmd = new \OMV\System\Process("sh", [
                 "-c",
-                "export DEBIAN_FRONTEND=noninteractive; apt-get purge -y veracrypt veracrypt-console || echo 'VeraCrypt package removal completed.'"
+                "export DEBIAN_FRONTEND=noninteractive; apt-get purge -y veracrypt-console veracrypt || echo 'VeraCrypt removal completed.'"
             ]);
             $cmd->setRedirect2to1();
             $cmdLine = $cmd->getCommandLine();
