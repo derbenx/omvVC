@@ -77,7 +77,7 @@ data:
                 label: _("Container Location / Drive Partition")
                 value: ""
                 required: true
-                hint: _("Enter parent path to file container, or device name/path (e.g., sdc1 or /dev/sdc1).")
+                hint: "_('Enter parent path to file container, or device name/path (e.g., sdc1 or /dev/sdc1).')"
               - type: textInput
                 name: filename
                 label: _("File Container Name")
@@ -94,7 +94,7 @@ data:
                 label: _("Endpoint Folder (Mountpoint)")
                 value: ""
                 required: true
-                hint: _("Absolute path, e.g., /srv/dev-disk-by-uuid-##/folder")
+                hint: "_('Absolute path, e.g., /srv/dev-disk-by-uuid-##/folder')"
               - type: passwordInput
                 name: password
                 label: _("VeraCrypt Password")
@@ -103,7 +103,7 @@ data:
                 name: permissions
                 label: _("Permissions (Standard Octal)")
                 value: "777"
-                hint: _("Examples: 777 (completely public), 770 (group-accessible), or 755 (read-only for others)")
+                hint: "_('Examples: 777 (completely public), 770 (group-accessible), or 755 (read-only for others)')"
               - type: checkbox
                 name: remember_configs
                 label: _("Remember Configurations & Credentials")

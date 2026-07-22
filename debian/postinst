@@ -12,6 +12,11 @@ case "$1" in
         chmod +x /usr/sbin/vcd.sh
         chmod +x /usr/sbin/vcu.sh
 
+        # Ensure our confdb create script is executable
+        if [ -f "/usr/share/openmediavault/confdb/create.d/conf.service.veracrypt.sh" ]; then
+            chmod +x /usr/share/openmediavault/confdb/create.d/conf.service.veracrypt.sh
+        fi
+
         # Initialize config database node for VeraCrypt
         echo "Updating configuration database ..."
         omv-confdbadm create "conf.service.veracrypt" || :
