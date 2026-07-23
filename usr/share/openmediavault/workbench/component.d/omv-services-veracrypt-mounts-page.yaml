@@ -12,6 +12,7 @@ data:
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
+        value: ""
         readonly: true
       - type: checklist
         name: mounted_volumes

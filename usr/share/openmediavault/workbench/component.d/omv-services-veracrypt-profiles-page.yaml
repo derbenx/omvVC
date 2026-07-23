@@ -15,6 +15,7 @@ data:
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
+        value: ""
         readonly: true
       - type: select
         name: saved_profile
@@ -25,10 +26,9 @@ data:
           proxy:
             service: VeraCrypt
             method: getProfileList
-      - type: textInput
+      - type: hidden
         name: uuid
         value: "{{ newconfobjuuid }}"
-        class: "d-none"
       - type: textInput
         name: name
         label: _("Profile Name")
