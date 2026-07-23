@@ -708,7 +708,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $profile = [
             "installed" => $installed,
             "installed_str" => $installed ? "yes" : "no",
-            "vc_installed_status" => "🟢 VeraCrypt installed",
+            "vc_installed_status" => $installed ? "🟢 VeraCrypt installed" : "🔴 Please Install VeraCrypt!",
             "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
             "uuid" => $uuid,
             "name" => "",
@@ -998,7 +998,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             "installed_str" => $installed ? "yes" : "no",
             "mounted" => $mounted,
             "active_mounts" => $activeMounts,
-            "vc_installed_status" => "🟢 VeraCrypt installed",
+            "vc_installed_status" => $installed ? "🟢 VeraCrypt installed" : "🔴 Please Install VeraCrypt!",
             "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
             "vc_bottom_notice" => "🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this."
         ];

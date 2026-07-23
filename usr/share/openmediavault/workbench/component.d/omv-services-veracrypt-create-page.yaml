@@ -10,38 +10,10 @@ data:
         method: getStatus
     fields:
       - type: textInput
-        name: installed_str
-        value: "no"
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0: true
-              arg1: false
-      - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
-        value: _("🟢 VeraCrypt installed")
+        value: ""
         readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "yes"
-      - type: textInput
-        name: vc_not_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🔴 Please Install VeraCrypt!")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
       - type: sharedfolder
         name: shared_folder_uuid
         label: _("Select Shared Folder (Optional)")
@@ -51,9 +23,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
+              arg0: "prop:vc_installed_status"
+              arg1: "🔴 Please Install VeraCrypt!"
       - type: textInput
         name: path
         label: _("Target Container File / Partition Device Path")
@@ -64,9 +35,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
+              arg0: "prop:vc_installed_status"
+              arg1: "🔴 Please Install VeraCrypt!"
       - type: textInput
         name: size
         label: _("Volume Size")
@@ -77,9 +47,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
+              arg0: "prop:vc_installed_status"
+              arg1: "🔴 Please Install VeraCrypt!"
       - type: passwordInput
         name: password
         label: _("VeraCrypt Passphrase")
@@ -89,9 +58,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
+              arg0: "prop:vc_installed_status"
+              arg1: "🔴 Please Install VeraCrypt!"
       - type: select
         name: filesystem
         label: _("Filesystem Format")
@@ -106,9 +74,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
+              arg0: "prop:vc_installed_status"
+              arg1: "🔴 Please Install VeraCrypt!"
       - type: select
         name: encryption
         label: _("Encryption Algorithm")
@@ -122,9 +89,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
+              arg0: "prop:vc_installed_status"
+              arg1: "🔴 Please Install VeraCrypt!"
       - type: select
         name: hash
         label: _("Hash Algorithm")
@@ -137,9 +103,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
+              arg0: "prop:vc_installed_status"
+              arg1: "🔴 Please Install VeraCrypt!"
     buttons:
       - id: create
         text: _("Create & Format Volume")

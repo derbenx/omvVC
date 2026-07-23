@@ -10,38 +10,10 @@ data:
         method: getStatus
     fields:
       - type: textInput
-        name: installed_str
-        value: "no"
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0: true
-              arg1: false
-      - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
-        value: _("🟢 VeraCrypt installed")
+        value: ""
         readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "yes"
-      - type: textInput
-        name: vc_not_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🔴 Please Install VeraCrypt!")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
     buttons:
       - id: install
         text: _("Install VeraCrypt")
