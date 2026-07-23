@@ -36,11 +36,48 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("setProfile");
         $this->registerMethod("deleteProfile");
         $this->registerMethod("mount");
+        $this->registerMethod("mountManual");
         $this->registerMethod("unmount");
         $this->registerMethod("createContainer");
         $this->registerMethod("installVeraCrypt");
         $this->registerMethod("removeVeraCrypt");
         $this->registerMethod("getStatus");
+    }
+
+    private function filterProfileData($profile)
+    {
+        $allowedKeys = [
+            "uuid",
+            "shared_folder_uuid",
+            "name",
+            "type",
+            "container_location",
+            "endpoint_folder",
+            "password",
+            "filename",
+            "permissions",
+            "save_password",
+            "remember_configs"
+        ];
+        $filtered = [];
+        foreach ($allowedKeys as $key) {
+            if (isset($profile[$key])) {
+                $filtered[$key] = $profile[$key];
+            } else {
+                if ($key === "permissions") {
+                    $filtered[$key] = "777";
+                } elseif ($key === "type") {
+                    $filtered[$key] = "file";
+                } elseif ($key === "save_password") {
+                    $filtered[$key] = false;
+                } elseif ($key === "remember_configs") {
+                    $filtered[$key] = true;
+                } else {
+                    $filtered[$key] = "";
+                }
+            }
+        }
+        return $filtered;
     }
 
     private function getConfigObject()
@@ -104,7 +141,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                 } else {
                     $profile['password'] = $oldP;
                 }
-                $profiles[] = $profile;
+                $profiles[] = $this->filterProfileData($profile);
             }
             $params['profiles']['profile'] = $profiles;
         }
@@ -346,17 +383,19 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $params['password'] = $oldPassword;
         }
 
+        $filteredParams = $this->filterProfileData($params);
+
         $found = false;
         foreach ($profilesList as $key => $p) {
             if ($p['uuid'] === $uuid) {
-                $profilesList[$key] = $params;
+                $profilesList[$key] = $filteredParams;
                 $found = true;
                 break;
             }
         }
 
         if (!$found) {
-            $profilesList[] = $params;
+            $profilesList[] = $filteredParams;
         }
 
         $profilesData['profile'] = $profilesList;
@@ -508,13 +547,18 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $type = isset($targetProfile['type']) ? $targetProfile['type'] : 'file';
         $containerLoc = isset($targetProfile['container_location']) ? $targetProfile['container_location'] : '';
         $endpoint = isset($targetProfile['endpoint_folder']) ? $targetProfile['endpoint_folder'] : '';
-        $password = isset($targetProfile['password']) ? $targetProfile['password'] : '';
-        if (!empty($password)) {
-            $decoded = base64_decode($password, true);
-            if ($decoded !== false) {
-                $password = $decoded;
+
+        $password = isset($params['password']) ? $params['password'] : '';
+        if (empty($password)) {
+            $password = isset($targetProfile['password']) ? $targetProfile['password'] : '';
+            if (!empty($password)) {
+                $decoded = base64_decode($password, true);
+                if ($decoded !== false) {
+                    $password = $decoded;
+                }
             }
         }
+
         $filename = isset($targetProfile['filename']) ? $targetProfile['filename'] : '';
         $perm = isset($targetProfile['permissions']) ? $targetProfile['permissions'] : '777';
         $sfUuid = isset($targetProfile['shared_folder_uuid']) ? $targetProfile['shared_folder_uuid'] : '';
@@ -556,6 +600,72 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $args = [$device, $mountpoint, $password, $perm];
         } else {
             // For file, build path to container file
+            if (strpos($filename, '/') === 0) {
+                $containerPath = $filename;
+            } else {
+                $containerPath = build_path(DIRECTORY_SEPARATOR, $containerLoc, $filename);
+            }
+            $script = "/usr/sbin/vcm.sh";
+            $args = [$containerPath, $mountpoint, $password, $perm];
+        }
+
+        $cmd = new \OMV\System\Process($script, $args);
+        $cmd->execute($output, $exitStatus);
+
+        if ($exitStatus !== 0) {
+            throw new \OMV\Exception("Failed to mount VeraCrypt container: " . implode("\n", $output));
+        }
+
+        return ["success" => true, "output" => $output];
+    }
+
+    public function mountManual($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.veracrypt.mountManual");
+        $this->checkVeraCryptInstalled();
+
+        $type = isset($params['type']) ? $params['type'] : 'file';
+        $containerLoc = isset($params['container_location']) ? $params['container_location'] : '';
+        $endpoint = isset($params['endpoint_folder']) ? $params['endpoint_folder'] : '';
+        $password = isset($params['password']) ? $params['password'] : '';
+        $filename = isset($params['filename']) ? $params['filename'] : '';
+        $perm = isset($params['permissions']) ? $params['permissions'] : '777';
+        $sfUuid = isset($params['shared_folder_uuid']) ? $params['shared_folder_uuid'] : '';
+
+        if (!empty($sfUuid)) {
+            try {
+                $sf = new \OMV\System\SharedFolder($sfUuid);
+                $basePath = $sf->getAbspath();
+                if (!empty($containerLoc)) {
+                    $containerLoc = build_path(DIRECTORY_SEPARATOR, $basePath, $containerLoc);
+                } else {
+                    $containerLoc = $basePath;
+                }
+            } catch (\Exception $e) {
+                // fallback
+            }
+        }
+
+        // Prepare absolute paths
+        if (strpos($endpoint, '/') !== 0) {
+            if (!empty($containerLoc)) {
+                $mountpoint = build_path(DIRECTORY_SEPARATOR, $containerLoc, $endpoint);
+            } else {
+                $mountpoint = build_path(DIRECTORY_SEPARATOR, "/srv", $endpoint);
+            }
+        } else {
+            $mountpoint = $endpoint;
+        }
+
+        if ($type === 'drive') {
+            $device = $containerLoc;
+            if (strpos($device, '/dev/') !== 0 && !empty($device)) {
+                $device = "/dev/" . $device;
+            }
+            $script = "/usr/sbin/vcd.sh";
+            $args = [$device, $mountpoint, $password, $perm];
+        } else {
             if (strpos($filename, '/') === 0) {
                 $containerPath = $filename;
             } else {

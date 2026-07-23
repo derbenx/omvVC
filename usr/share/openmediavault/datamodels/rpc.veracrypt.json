@@ -84,6 +84,40 @@
 	},
 	{
 		"type": "rpc",
+		"id": "rpc.veracrypt.mountManual",
+		"params": {
+			"type": "object",
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": ["file", "drive"],
+					"required": true
+				},
+				"shared_folder_uuid": {
+					"type": "string"
+				},
+				"container_location": {
+					"type": "string",
+					"required": true
+				},
+				"filename": {
+					"type": "string"
+				},
+				"endpoint_folder": {
+					"type": "string",
+					"required": true
+				},
+				"password": {
+					"type": "string"
+				},
+				"permissions": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	{
+		"type": "rpc",
 		"id": "rpc.veracrypt.createContainer",
 		"params": {
 			"type": "object",
@@ -127,6 +161,9 @@
 					"type": "string",
 					"format": "uuidv4",
 					"required": true
+				},
+				"password": {
+					"type": "string"
 				}
 			}
 		}

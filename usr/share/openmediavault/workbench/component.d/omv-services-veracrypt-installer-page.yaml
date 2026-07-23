@@ -9,15 +9,9 @@ data:
       get:
         method: getStatus
     fields:
-      - type: checkbox
+      - type: hidden
         name: installed
         value: false
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0: 1
-              arg1: 2
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
