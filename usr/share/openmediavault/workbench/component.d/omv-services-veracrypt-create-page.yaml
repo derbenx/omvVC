@@ -36,20 +36,6 @@ data:
               arg0:
                 prop: installed
               arg1: false
-      - type: textInput
-        name: vc_missing_validation_trigger
-        label: _("🔴 Required Action")
-        value: ""
-        required: true
-        readonly: true
-        hint: _("🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this.")
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed
-              arg1: false
       - type: sharedfolder
         name: shared_folder_uuid
         label: _("Select Shared Folder (Optional)")
@@ -106,10 +92,10 @@ data:
         value: "exFAT"
         store:
           data:
-            - ["exFAT", _("exFAT (Highly Recommended, Cross-Platform)")]
-            - ["FAT", _("FAT32 (Max Compatibility, 4GB file size limit)")]
-            - ["ext4", _("ext4 (Linux Only, Native Performance)")]
-            - ["NTFS", _("NTFS (Windows & Linux compatibility)")]
+            - ["exFAT", "exFAT (Highly Recommended, Cross-Platform)"]
+            - ["FAT", "FAT32 (Max Compatibility, 4GB file size limit)"]
+            - ["ext4", "ext4 (Linux Only, Native Performance)"]
+            - ["NTFS", "NTFS (Windows & Linux compatibility)"]
         modifiers:
           - type: readonly
             constraint:
@@ -123,9 +109,9 @@ data:
         value: "AES"
         store:
           data:
-            - ["AES", _("AES (Hardware Accelerated, Best Performance)")]
-            - ["Serpent", _("Serpent")]
-            - ["Twofish", _("Twofish")]
+            - ["AES", "AES (Hardware Accelerated, Best Performance)"]
+            - ["Serpent", "Serpent"]
+            - ["Twofish", "Twofish"]
         modifiers:
           - type: readonly
             constraint:
@@ -139,22 +125,10 @@ data:
         value: "sha-512"
         store:
           data:
-            - ["sha-512", _("SHA-512")]
-            - ["whirlpool", _("Whirlpool")]
+            - ["sha-512", "SHA-512"]
+            - ["whirlpool", "Whirlpool"]
         modifiers:
           - type: readonly
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed
-              arg1: false
-      - type: textInput
-        name: vc_bottom_notice
-        label: _("VeraCrypt Status Notice")
-        value: _("🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this.")
-        readonly: true
-        modifiers:
-          - type: visible
             constraint:
               operator: eq
               arg0:

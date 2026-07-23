@@ -149,7 +149,7 @@ data:
       - type: iconButton
         icon: mdi:pencil
         tooltip: _("Edit Profile")
-        enabledBind: "oneSelected && _selected[0].uuid !== '00000000-0000-0000-0000-000000000000'"
+        enabledBind: "oneSelected && _selected[0].is_profile"
         execute:
           type: formDialog
           formDialog:
@@ -245,7 +245,7 @@ data:
                     method: setProfile
                 successUrl: /services/veracrypt
       - template: delete
-        enabledBind: "oneSelected && _selected[0].uuid !== '00000000-0000-0000-0000-000000000000'"
+        enabledBind: "oneSelected && _selected[0].is_profile"
         execute:
           type: request
           request:
@@ -255,8 +255,8 @@ data:
               uuid: "{{ _selected[0].uuid }}"
       - type: iconButton
         icon: mdi:play-circle-outline
-        tooltip: "{{ _selected[0] && _selected[0].installed ? 'Mount Selected Profile' : 'veracrypt is not installed' }}"
-        enabledBind: "oneSelected && _selected[0].installed && _selected[0].uuid !== '00000000-0000-0000-0000-000000000000'"
+        tooltip: _("Mount Selected Profile")
+        enabledBind: "oneSelected && _selected[0].is_profile && _selected[0].installed"
         execute:
           type: request
           request:
@@ -266,8 +266,8 @@ data:
               uuid: "{{ _selected[0].uuid }}"
       - type: iconButton
         icon: mdi:stop-circle-outline
-        tooltip: "{{ _selected[0] && _selected[0].installed ? 'Unmount Selected Profile' : 'veracrypt is not installed' }}"
-        enabledBind: "oneSelected && _selected[0].installed && _selected[0].uuid !== '00000000-0000-0000-0000-000000000000'"
+        tooltip: _("Unmount Selected Profile")
+        enabledBind: "oneSelected && _selected[0].is_profile && _selected[0].installed"
         execute:
           type: request
           request:

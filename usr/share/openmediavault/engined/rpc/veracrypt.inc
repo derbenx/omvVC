@@ -116,12 +116,39 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
     private function isVeraCryptInstalled()
     {
-        if (file_exists("/usr/bin/veracrypt") || file_exists("/usr/sbin/veracrypt") || file_exists("/usr/local/bin/veracrypt")) {
-            return true;
+        $paths = [
+            "/usr/bin/veracrypt",
+            "/usr/sbin/veracrypt",
+            "/usr/local/bin/veracrypt",
+            "/bin/veracrypt",
+            "/sbin/veracrypt",
+            "/usr/bin/veracrypt-console",
+            "/usr/sbin/veracrypt-console"
+        ];
+        foreach ($paths as $path) {
+            if (@file_exists($path)) {
+                return true;
+            }
         }
-        $cmdCheck = new \OMV\System\Process("which", ["veracrypt"]);
-        $cmdCheck->execute($output, $exitStatus);
-        return $exitStatus === 0;
+        try {
+            $proc = new \OMV\System\Process("veracrypt", ["--version"]);
+            $proc->execute($output, $exitStatus);
+            if ($exitStatus === 0 || $exitStatus === 1) {
+                return true;
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
+        try {
+            $proc = new \OMV\System\Process("which", ["veracrypt"]);
+            $proc->execute($output, $exitStatus);
+            if ($exitStatus === 0) {
+                return true;
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
+        return false;
     }
 
     private function checkVeraCryptInstalled()
@@ -204,13 +231,15 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
             $profile['mounted'] = $mounted;
             $profile['installed'] = $installed;
+            $profile['is_profile'] = true;
+            $profile['is_virtual'] = false;
             $resultList[] = $profile;
         }
 
         // Prepend virtual status row
         $statusRow = [
             "uuid" => "00000000-0000-0000-0000-000000000000",
-            "name" => $installed ? "🟢 VeraCrypt is installed" : "🔴 VeraCrypt is NOT installed!",
+            "name" => $installed ? "🟢 VeraCrypt is installed" : "🔴 VeraCrypt is NOT installed! Please install VeraCrypt from the Installer tab.",
             "type" => $installed ? "Installed" : "NOT Installed",
             "container_location" => "Please check the Installer tab to install or purge.",
             "filename" => "",
@@ -218,7 +247,9 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             "permissions" => "",
             "remember_configs" => false,
             "mounted" => $installed,
-            "installed" => $installed
+            "installed" => $installed,
+            "is_profile" => false,
+            "is_virtual" => true
         ];
         array_unshift($resultList, $statusRow);
 
