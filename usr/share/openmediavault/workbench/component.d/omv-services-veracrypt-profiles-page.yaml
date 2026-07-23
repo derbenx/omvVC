@@ -59,10 +59,12 @@ data:
         value: ""
         required: true
         hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
+        autocomplete: "off"
       - type: passwordInput
         name: password
         label: _("VeraCrypt Password")
         value: ""
+        autocomplete: "new-password"
       - type: textInput
         name: permissions
         label: _("Permissions (Standard Octal)")

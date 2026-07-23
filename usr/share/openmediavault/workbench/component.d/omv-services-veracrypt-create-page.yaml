@@ -35,6 +35,7 @@ data:
         value: ""
         required: true
         hint: _("Examples include secure.vc (when a shared folder is selected above) or an absolute path such as /dev/sdc1.")
+        autocomplete: "off"
         modifiers:
           - type: readonly
             constraint:
@@ -60,6 +61,7 @@ data:
         label: _("VeraCrypt Passphrase")
         value: ""
         required: true
+        autocomplete: "new-password"
         modifiers:
           - type: readonly
             constraint:
