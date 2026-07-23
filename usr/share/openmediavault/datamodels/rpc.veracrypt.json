@@ -59,6 +59,9 @@
 				"permissions": {
 					"type": "string"
 				},
+				"save_password": {
+					"type": "boolean"
+				},
 				"remember_configs": {
 					"type": "boolean"
 				}

@@ -70,13 +70,39 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $db = \OMV\Config\Database::getInstance();
         $object = $this->getConfigObject();
 
-        // Handle profile modifications (e.g. if remember_configs is false, clear fields)
+        // Handle profile modifications (e.g. if remember_configs or save_password is false, clear password)
         if (isset($params['profiles']) && isset($params['profiles']['profile'])) {
+            $existingConfig = $this->getConfigObject();
+            $existingProfiles = $existingConfig->get("profiles") ? $existingConfig->get("profiles") : [];
+            $existingProfilesList = isset($existingProfiles['profile']) ? $existingProfiles['profile'] : [];
+
+            $existingPasswords = [];
+            foreach ($existingProfilesList as $ep) {
+                if (isset($ep['uuid'])) {
+                    $existingPasswords[$ep['uuid']] = isset($ep['password']) ? $ep['password'] : '';
+                }
+            }
+
             $profiles = [];
             foreach ($params['profiles']['profile'] as $profile) {
                 if (isset($profile['remember_configs']) && !$profile['remember_configs']) {
-                    // Turn off remember configs: forget password and other sensitive fields
                     $profile['password'] = "";
+                }
+
+                $pUuid = isset($profile['uuid']) ? $profile['uuid'] : '';
+                $oldP = isset($existingPasswords[$pUuid]) ? $existingPasswords[$pUuid] : '';
+                $newP = isset($profile['password']) ? $profile['password'] : '';
+
+                if ($newP !== $oldP) {
+                    if (isset($profile['save_password']) && $profile['save_password']) {
+                        if (!empty($newP)) {
+                            $profile['password'] = base64_encode($newP);
+                        }
+                    } else {
+                        $profile['password'] = "";
+                    }
+                } else {
+                    $profile['password'] = $oldP;
                 }
                 $profiles[] = $profile;
             }
@@ -205,7 +231,29 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
         $uuid = $params['uuid'];
         $found = false;
+        $oldPassword = "";
 
+        foreach ($profilesList as $key => $p) {
+            if ($p['uuid'] === $uuid) {
+                $oldPassword = isset($p['password']) ? $p['password'] : '';
+                break;
+            }
+        }
+
+        $newPassword = isset($params['password']) ? $params['password'] : '';
+        if ($newPassword !== $oldPassword) {
+            if (isset($params['save_password']) && $params['save_password']) {
+                if (!empty($newPassword)) {
+                    $params['password'] = base64_encode($newPassword);
+                }
+            } else {
+                $params['password'] = "";
+            }
+        } else {
+            $params['password'] = $oldPassword;
+        }
+
+        $found = false;
         foreach ($profilesList as $key => $p) {
             if ($p['uuid'] === $uuid) {
                 $profilesList[$key] = $params;
@@ -342,6 +390,12 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $containerLoc = isset($targetProfile['container_location']) ? $targetProfile['container_location'] : '';
         $endpoint = isset($targetProfile['endpoint_folder']) ? $targetProfile['endpoint_folder'] : '';
         $password = isset($targetProfile['password']) ? $targetProfile['password'] : '';
+        if (!empty($password)) {
+            $decoded = base64_decode($password, true);
+            if ($decoded !== false) {
+                $password = $decoded;
+            }
+        }
         $filename = isset($targetProfile['filename']) ? $targetProfile['filename'] : '';
         $perm = isset($targetProfile['permissions']) ? $targetProfile['permissions'] : '777';
         $sfUuid = isset($targetProfile['shared_folder_uuid']) ? $targetProfile['shared_folder_uuid'] : '';

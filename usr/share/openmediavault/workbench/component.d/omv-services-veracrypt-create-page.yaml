@@ -33,6 +33,20 @@ data:
               arg0:
                 prop: installed
               arg1: false
+      - type: textInput
+        name: vc_missing_validation_trigger
+        label: _("Required Action")
+        value: ""
+        required: true
+        readonly: true
+        hint: _("You must install VeraCrypt from the 'VeraCrypt Installer' tab to enable and unlock this form.")
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: false
       - type: sharedfolder
         name: shared_folder_uuid
         label: _("Select Shared Folder (Optional)")

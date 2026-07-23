@@ -9,12 +9,30 @@ data:
       get:
         method: getStatus
     fields:
-      - type: checkbox
-        name: installed
-        label: _("VeraCrypt Package Installed")
-        value: false
+      - type: textInput
+        name: vc_installed_status
+        label: _("VeraCrypt Status")
+        value: _("VeraCrypt installed")
         readonly: true
-        hint: _("Checked if the 'veracrypt' executable is currently installed and available in the system.")
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
+      - type: textInput
+        name: vc_not_installed_status
+        label: _("VeraCrypt Status")
+        value: _("Please Install VeraCrypt!")
+        readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: false
     buttons:
       - id: install
         text: _("Install VeraCrypt")

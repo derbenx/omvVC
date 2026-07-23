@@ -55,6 +55,10 @@
 								"type": "string",
 								"default": "777"
 							},
+							"save_password": {
+								"type": "boolean",
+								"default": false
+							},
 							"remember_configs": {
 								"type": "boolean",
 								"default": true

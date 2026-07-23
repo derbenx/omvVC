@@ -100,10 +100,33 @@ data:
                 value: ""
                 required: true
                 hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
+              - type: checkbox
+                name: save_password
+                label: _("Save Passwords & Credentials")
+                value: false
+              - type: textInput
+                name: password_plain_text_warning
+                label: _("Security Warning")
+                value: _("Warning: Passwords are saved as base64-encoded plaintext! Use with extreme caution!")
+                readonly: true
+                modifiers:
+                  - type: visible
+                    constraint:
+                      operator: eq
+                      arg0:
+                        prop: save_password
+                      arg1: true
               - type: passwordInput
                 name: password
                 label: _("VeraCrypt Password")
                 value: ""
+                modifiers:
+                  - type: visible
+                    constraint:
+                      operator: eq
+                      arg0:
+                        prop: save_password
+                      arg1: true
               - type: textInput
                 name: permissions
                 label: _("Permissions (Standard Octal)")
@@ -175,10 +198,33 @@ data:
                 value: "{{ _selected[0].endpoint_folder }}"
                 required: true
                 hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
+              - type: checkbox
+                name: save_password
+                label: _("Save Passwords & Credentials")
+                value: "{{ _selected[0].save_password }}"
+              - type: textInput
+                name: password_plain_text_warning
+                label: _("Security Warning")
+                value: _("Warning: Passwords are saved as base64-encoded plaintext! Use with extreme caution!")
+                readonly: true
+                modifiers:
+                  - type: visible
+                    constraint:
+                      operator: eq
+                      arg0:
+                        prop: save_password
+                      arg1: true
               - type: passwordInput
                 name: password
                 label: _("VeraCrypt Password")
                 value: "{{ _selected[0].password }}"
+                modifiers:
+                  - type: visible
+                    constraint:
+                      operator: eq
+                      arg0:
+                        prop: save_password
+                      arg1: true
               - type: textInput
                 name: permissions
                 label: _("Permissions")

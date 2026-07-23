@@ -46,6 +46,10 @@ fi
 
 echo "Detected OS: $OS_NAME, Architecture: $ARCH"
 
+# Create a secure temp directory with restricted permissions
+TMP_DIR=$(mktemp -d /tmp/veracrypt_XXXXXX)
+chmod 700 "$TMP_DIR"
+
 # We will try fallback versions if download fails
 VC_VERSIONS="1.26.24 1.26.29 1.26.14 1.26.20"
 DOWNLOAD_SUCCESS=false
@@ -55,7 +59,7 @@ for VC_VER in $VC_VERSIONS; do
     echo "Attempting to download VeraCrypt version ${VC_VER} for ${OS_NAME}..."
     if wget --spider -q "$URL"; then
         echo "Found package at $URL"
-        if wget -O /tmp/veracrypt.deb "$URL"; then
+        if wget -O "$TMP_DIR/veracrypt.deb" "$URL"; then
             DOWNLOAD_SUCCESS=true
             break
         fi
@@ -66,7 +70,7 @@ for VC_VER in $VC_VERSIONS; do
             FALLBACK_URL="https://launchpad.net/veracrypt/trunk/${VC_VER}/+download/veracrypt-console-${VC_VER}-Debian-12-${ARCH}.deb"
             if wget --spider -q "$FALLBACK_URL"; then
                 echo "Found fallback package at $FALLBACK_URL"
-                if wget -O /tmp/veracrypt.deb "$FALLBACK_URL"; then
+                if wget -O "$TMP_DIR/veracrypt.deb" "$FALLBACK_URL"; then
                     DOWNLOAD_SUCCESS=true
                     break
                 fi
@@ -77,15 +81,16 @@ done
 
 if [ "$DOWNLOAD_SUCCESS" = "false" ]; then
     echo "Error: Failed to download any compatible VeraCrypt console package from Launchpad."
+    rm -rf "$TMP_DIR"
     exit 1
 fi
 
 echo "Installing VeraCrypt console package..."
 export DEBIAN_FRONTEND=noninteractive
-dpkg -i /tmp/veracrypt.deb || apt-get install -f -y
+dpkg -i "$TMP_DIR/veracrypt.deb" || apt-get install -f -y
 
 # Clean up
-rm -f /tmp/veracrypt.deb
+rm -rf "$TMP_DIR"
 
 echo "VeraCrypt console package installation completed successfully."
 exit 0

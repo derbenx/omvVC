@@ -7,11 +7,12 @@ set -e
 
 case "$1" in
     configure)
-        # Ensure our wrapper scripts are executable
-        chmod +x /usr/sbin/vcm.sh
-        chmod +x /usr/sbin/vcd.sh
-        chmod +x /usr/sbin/vcu.sh
-        chmod +x /usr/sbin/vci.sh
+        # Ensure our wrapper scripts are executable if they exist
+        for script in /usr/sbin/vcm.sh /usr/sbin/vcd.sh /usr/sbin/vcu.sh /usr/sbin/vci.sh; do
+            if [ -f "$script" ]; then
+                chmod +x "$script"
+            fi
+        done
 
         # Ensure our confdb create script is executable
         if [ -f "/usr/share/openmediavault/confdb/create.d/conf.service.veracrypt.sh" ]; then
