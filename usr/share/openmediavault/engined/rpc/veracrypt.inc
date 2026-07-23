@@ -708,7 +708,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $profile = [
             "installed" => $installed,
             "installed_str" => $installed ? "yes" : "no",
-            "vc_installed_status" => $installed ? "🟢 VeraCrypt installed" : "🔴 Please Install VeraCrypt!",
+            "vc_installed_status" => "🟢 VeraCrypt installed",
             "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
             "uuid" => $uuid,
             "name" => "",
@@ -1026,6 +1026,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                     // Pattern standard: "1: /path/to/container /dev/loopX /path/to/mountpoint"
                     if (preg_match('/^(\d+):\s+(.+?)\s+(\S+)\s+(.+)$/', $trimmedLine, $matches)) {
                         $volumes[] = [
+                            "id" => $matches[1],
                             "slot" => $matches[1],
                             "container" => trim($matches[2]),
                             "device" => trim($matches[3]),
@@ -1033,6 +1034,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                         ];
                     } else if (preg_match('/^(\d+):\s+(.+?)\s+(.+)$/', $trimmedLine, $matches)) {
                         $volumes[] = [
+                            "id" => $matches[1],
                             "slot" => $matches[1],
                             "container" => trim($matches[2]),
                             "device" => "",
