@@ -107,7 +107,7 @@ data:
               - type: textInput
                 name: password_plain_text_warning
                 label: _("Security Warning")
-                value: _("Warning: Passwords are saved as base64-encoded plaintext! Use with extreme caution!")
+                value: _("Warning - Passwords are saved as base64-encoded plaintext! Use with extreme caution!")
                 readonly: true
                 modifiers:
                   - type: visible
@@ -205,7 +205,7 @@ data:
               - type: textInput
                 name: password_plain_text_warning
                 label: _("Security Warning")
-                value: _("Warning: Passwords are saved as base64-encoded plaintext! Use with extreme caution!")
+                value: _("Warning - Passwords are saved as base64-encoded plaintext! Use with extreme caution!")
                 readonly: true
                 modifiers:
                   - type: visible
