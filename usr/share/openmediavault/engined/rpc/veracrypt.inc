@@ -43,11 +43,22 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("getStatus");
     }
 
+    private function getConfigObject()
+    {
+        $db = \OMV\Config\Database::getInstance();
+        try {
+            return $db->get("conf.service.veracrypt");
+        } catch (\Exception $e) {
+            $cmd = new \OMV\System\Process("omv-confdbadm", ["create", "conf.service.veracrypt"]);
+            $cmd->execute();
+            return $db->get("conf.service.veracrypt");
+        }
+    }
+
     public function get($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
-        $db = \OMV\Config\Database::getInstance();
-        $object = $db->get("conf.service.veracrypt");
+        $object = $this->getConfigObject();
         return $object->getAssoc();
     }
 
@@ -57,7 +68,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.veracrypt.set");
 
         $db = \OMV\Config\Database::getInstance();
-        $object = $db->get("conf.service.veracrypt");
+        $object = $this->getConfigObject();
 
         // Handle profile modifications (e.g. if remember_configs is false, clear fields)
         if (isset($params['profiles']) && isset($params['profiles']['profile'])) {
@@ -98,8 +109,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
 
-        $db = \OMV\Config\Database::getInstance();
-        $config = $db->get("conf.service.veracrypt");
+        $config = $this->getConfigObject();
         $profilesData = $config->get("profiles") ? $config->get("profiles") : [];
         $profilesList = [];
 
@@ -180,7 +190,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.veracrypt.setProfile");
 
         $db = \OMV\Config\Database::getInstance();
-        $object = $db->get("conf.service.veracrypt");
+        $object = $this->getConfigObject();
         $profilesData = $object->get("profiles") ? $object->get("profiles") : [];
         $profilesList = [];
 
@@ -221,7 +231,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.veracrypt.deleteProfile");
 
         $db = \OMV\Config\Database::getInstance();
-        $object = $db->get("conf.service.veracrypt");
+        $object = $this->getConfigObject();
         $profilesData = $object->get("profiles") ? $object->get("profiles") : [];
         $profilesList = [];
 
@@ -311,8 +321,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         $uuid = $params['uuid'];
-        $db = \OMV\Config\Database::getInstance();
-        $config = $db->get("conf.service.veracrypt");
+        $config = $this->getConfigObject();
         $profiles = $config->get("profiles") ? $config->get("profiles") : [];
         $targetProfile = null;
 
@@ -400,8 +409,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         $uuid = $params['uuid'];
-        $db = \OMV\Config\Database::getInstance();
-        $config = $db->get("conf.service.veracrypt");
+        $config = $this->getConfigObject();
         $profiles = $config->get("profiles") ? $config->get("profiles") : [];
         $targetProfile = null;
 
@@ -519,8 +527,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
         if (isset($params['uuid']) && !empty($params['uuid'])) {
             $uuid = $params['uuid'];
-            $db = \OMV\Config\Database::getInstance();
-            $config = $db->get("conf.service.veracrypt");
+            $config = $this->getConfigObject();
             $profiles = $config->get("profiles") ? $config->get("profiles") : [];
             $targetProfile = null;
 

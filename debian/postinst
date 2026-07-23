@@ -24,7 +24,9 @@ case "$1" in
 
         # Restart openmediavault-engined so it registers the new RPC classes immediately
         if [ -x "/bin/systemctl" ]; then
-            systemctl restart openmediavault-engined.service || true
+            systemctl stop openmediavault-engined.service || true
+            pkill -f omv-engined || true
+            systemctl start openmediavault-engined.service || true
         fi
 
         # Activate package triggers to compile and render Angular Web UI workbench manifests
