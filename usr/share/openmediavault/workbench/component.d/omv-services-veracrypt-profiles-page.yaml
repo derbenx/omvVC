@@ -2,361 +2,185 @@ version: "1.0"
 type: component
 data:
   name: omv-services-veracrypt-profiles-page
-  type: datatablePage
+  type: formPage
   config:
-    autoReload: 10000
-    hasSearchField: true
-    stateId: edb8240a-5e8d-11ec-9a5f-0050568b504a
-    store:
-      proxy:
-        service: VeraCrypt
-        get:
-          method: getProfileList
-    columns:
-      - name: _("Profile Name")
-        prop: name
-        flexGrow: 1
-        sortable: true
-      - name: _("Type")
-        prop: type
-        flexGrow: 1
-        sortable: true
-      - name: _("Container Location")
-        prop: container_location
-        flexGrow: 2
-        sortable: true
-      - name: _("File Container Name")
-        prop: filename
-        flexGrow: 1
-        sortable: true
-      - name: _("Endpoint Mountpoint")
-        prop: endpoint_folder
-        flexGrow: 2
-        sortable: true
-      - name: _("Permissions")
-        prop: permissions
-        flexGrow: 1
-        sortable: true
-      - name: _("Remember Configs")
-        prop: remember_configs
-        flexGrow: 1
-        sortable: true
-        cellTemplateName: checkIcon
-      - name: _("Mounted Status")
-        prop: mounted
-        flexGrow: 1
-        sortable: true
-        cellTemplateName: checkIcon
-    actions:
-      - type: iconButton
-        icon: mdi:plus-box
-        tooltip: _("Add Profile")
+    request:
+      service: VeraCrypt
+      get:
+        method: getProfileDetails
+    fields:
+      - type: hidden
+        name: installed
+        value: false
+      - type: textInput
+        name: vc_installed_status
+        label: _("VeraCrypt Status")
+        value: _("🟢 VeraCrypt installed")
+        readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
+      - type: textInput
+        name: vc_not_installed_status
+        label: _("VeraCrypt Status")
+        value: _("🔴 Please Install VeraCrypt!")
+        readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: false
+      - type: select
+        name: saved_profile
+        label: _("Select Saved Profile")
+        value: ""
+        hint: _("Select a saved profile and click 'Load Selected Profile' below to populate this form.")
+        store:
+          proxy:
+            service: VeraCrypt
+            method: getProfileList
+      - type: hidden
+        name: uuid
+        value: "{{ newconfobjuuid }}"
+      - type: textInput
+        name: name
+        label: _("Profile Name")
+        value: ""
+        required: true
+      - type: select
+        name: type
+        label: _("Type")
+        value: "file"
+        store:
+          data:
+            - ["file", "File Container"]
+            - ["drive", "Partition Drive"]
+      - type: sharedfolder
+        name: shared_folder_uuid
+        label: _("Select Shared Folder (Optional)")
+        value: ""
+        hint: _("Choose an existing Shared Folder to use as the base path.")
+      - type: textInput
+        name: container_location
+        label: _("Container Location / Drive Partition")
+        value: ""
+        required: true
+        hint: _("Enter the parent path to the file container, or a device partition name such as sdc1.")
+      - type: textInput
+        name: filename
+        label: _("File Container Name")
+        value: ""
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: type
+              arg1: "file"
+      - type: textInput
+        name: endpoint_folder
+        label: _("Endpoint Folder (Mountpoint)")
+        value: ""
+        required: true
+        hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
+      - type: passwordInput
+        name: password
+        label: _("VeraCrypt Password")
+        value: ""
+      - type: textInput
+        name: permissions
+        label: _("Permissions (Standard Octal)")
+        value: "777"
+        hint: _("Examples include 777 (completely public), 770 (group-accessible), or 755 (read-only for others).")
+      - type: checkbox
+        name: remember_configs
+        label: _("Remember Configurations & Credentials")
+        value: true
+        hint: _("Unchecking this will prevent storing sensitive credentials in OMV database.")
+    buttons:
+      - id: load
+        text: _("Load Selected Profile")
+        icon: "mdi:folder-open"
         execute:
-          type: formDialog
-          formDialog:
-            title: _("Add VeraCrypt Profile ...")
-            fields:
-              - type: hidden
-                name: uuid
-                value: "{{ newconfobjuuid }}"
-              - type: textInput
-                name: name
-                label: _("Profile Name")
-                value: ""
-                required: true
-              - type: select
-                name: type
-                label: _("Type")
-                value: "file"
-                store:
-                  data:
-                    - ["file", "File Container"]
-                    - ["drive", "Partition Drive"]
-              - type: sharedfolder
-                name: shared_folder_uuid
-                label: _("Select Shared Folder (Optional)")
-                value: ""
-                hint: _("Choose an existing Shared Folder to use as the base path.")
-              - type: textInput
-                name: container_location
-                label: _("Container Location / Drive Partition")
-                value: ""
-                required: true
-                hint: _("Enter the parent path to the file container, or a device partition name such as sdc1.")
-              - type: textInput
-                name: filename
-                label: _("File Container Name")
-                value: ""
-                modifiers:
-                  - type: visible
-                    constraint:
-                      operator: eq
-                      arg0:
-                        prop: type
-                      arg1: "file"
-              - type: textInput
-                name: endpoint_folder
-                label: _("Endpoint Folder (Mountpoint)")
-                value: ""
-                required: true
-                hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
-              - type: checkbox
-                name: save_password
-                label: _("Save Passwords & Credentials")
-                value: false
-              - type: textInput
-                name: password_plain_text_warning
-                label: _("Security Warning")
-                value: _("Warning - Passwords are saved as base64-encoded plaintext! Use with extreme caution!")
-                readonly: true
-                modifiers:
-                  - type: visible
-                    constraint:
-                      operator: eq
-                      arg0:
-                        prop: save_password
-                      arg1: true
-              - type: passwordInput
-                name: password
-                label: _("VeraCrypt Password")
-                value: ""
-                modifiers:
-                  - type: visible
-                    constraint:
-                      operator: eq
-                      arg0:
-                        prop: save_password
-                      arg1: true
-              - type: textInput
-                name: permissions
-                label: _("Permissions (Standard Octal)")
-                value: "777"
-                hint: _("Examples include 777 (completely public), 770 (group-accessible), or 755 (read-only for others).")
-              - type: checkbox
-                name: remember_configs
-                label: _("Remember Configurations & Credentials")
-                value: true
-                hint: _("Unchecking this will prevent storing sensitive credentials in OMV database.")
-            buttons:
-              submit:
-                text: _("Add")
-                execute:
-                  type: request
-                  request:
-                    service: VeraCrypt
-                    method: setProfile
-                successUrl: /services/veracrypt
-      - type: iconButton
-        icon: mdi:play-circle-outline
-        tooltip: _("Mount Manual Container")
+          type: url
+          url: "/services/veracrypt/profiles/{{ saved_profile }}"
+      - id: new
+        text: _("New / Clear Form")
+        icon: "mdi:file-plus"
         execute:
-          type: formDialog
-          formDialog:
-            title: _("Mount Manual VeraCrypt Container ...")
-            fields:
-              - type: select
-                name: type
-                label: _("Type")
-                value: "file"
-                store:
-                  data:
-                    - ["file", "File Container"]
-                    - ["drive", "Partition Drive"]
-              - type: sharedfolder
-                name: shared_folder_uuid
-                label: _("Select Shared Folder (Optional)")
-                value: ""
-                hint: _("Choose an existing Shared Folder to use as the base path.")
-              - type: textInput
-                name: container_location
-                label: _("Container Location / Drive Partition")
-                value: ""
-                required: true
-                hint: _("Enter the parent path to the file container, or a device partition name such as sdc1.")
-              - type: textInput
-                name: filename
-                label: _("File Container Name")
-                value: ""
-                modifiers:
-                  - type: visible
-                    constraint:
-                      operator: eq
-                      arg0:
-                        prop: type
-                      arg1: "file"
-              - type: textInput
-                name: endpoint_folder
-                label: _("Endpoint Folder (Mountpoint)")
-                value: ""
-                required: true
-                hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
-              - type: passwordInput
-                name: password
-                label: _("VeraCrypt Password")
-                value: ""
-              - type: textInput
-                name: permissions
-                label: _("Permissions (Standard Octal)")
-                value: "777"
-                hint: _("Examples include 777 (completely public), 770 (group-accessible), or 755 (read-only for others).")
-            buttons:
-              submit:
-                text: _("Mount")
-                execute:
-                  type: request
-                  request:
-                    service: VeraCrypt
-                    method: mountManual
-                successUrl: /services/veracrypt
-      - type: iconButton
-        icon: mdi:pencil
-        tooltip: _("Edit Profile")
-        enabledBind: "oneSelected && _selected[0].is_profile"
+          type: url
+          url: "/services/veracrypt/profiles"
+      - id: save
+        text: _("Save Profile Settings")
+        icon: "mdi:content-save"
         execute:
-          type: formDialog
-          formDialog:
-            title: _("Edit VeraCrypt Profile ...")
-            fields:
-              - type: hidden
-                name: uuid
-                value: "{{ _selected[0].uuid }}"
-              - type: textInput
-                name: name
-                label: _("Profile Name")
-                value: "{{ _selected[0].name }}"
-                required: true
-              - type: select
-                name: type
-                label: _("Type")
-                value: "{{ _selected[0].type }}"
-                store:
-                  data:
-                    - ["file", "File Container"]
-                    - ["drive", "Partition Drive"]
-              - type: sharedfolder
-                name: shared_folder_uuid
-                label: _("Select Shared Folder (Optional)")
-                value: "{{ _selected[0].shared_folder_uuid }}"
-                hint: _("Choose an existing Shared Folder to use as the base path.")
-              - type: textInput
-                name: container_location
-                label: _("Container Location / Drive Partition")
-                value: "{{ _selected[0].container_location }}"
-                required: true
-                hint: _("Enter the parent path to the file container, or a device partition name such as sdc1.")
-              - type: textInput
-                name: filename
-                label: _("File Container Name")
-                value: "{{ _selected[0].filename }}"
-                modifiers:
-                  - type: visible
-                    constraint:
-                      operator: eq
-                      arg0:
-                        prop: type
-                      arg1: "file"
-              - type: textInput
-                name: endpoint_folder
-                label: _("Endpoint Folder (Mountpoint)")
-                value: "{{ _selected[0].endpoint_folder }}"
-                required: true
-                hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
-              - type: checkbox
-                name: save_password
-                label: _("Save Passwords & Credentials")
-                value: "{{ _selected[0].save_password }}"
-              - type: textInput
-                name: password_plain_text_warning
-                label: _("Security Warning")
-                value: _("Warning - Passwords are saved as base64-encoded plaintext! Use with extreme caution!")
-                readonly: true
-                modifiers:
-                  - type: visible
-                    constraint:
-                      operator: eq
-                      arg0:
-                        prop: save_password
-                      arg1: true
-              - type: passwordInput
-                name: password
-                label: _("VeraCrypt Password")
-                value: "{{ _selected[0].password }}"
-                modifiers:
-                  - type: visible
-                    constraint:
-                      operator: eq
-                      arg0:
-                        prop: save_password
-                      arg1: true
-              - type: textInput
-                name: permissions
-                label: _("Permissions")
-                value: "{{ _selected[0].permissions }}"
-                hint: _("Examples include 777 (completely public), 770 (group-accessible), or 755 (read-only for others).")
-              - type: checkbox
-                name: remember_configs
-                label: _("Remember Configurations & Credentials")
-                value: "{{ _selected[0].remember_configs }}"
-            buttons:
-              submit:
-                text: _("Save")
-                execute:
-                  type: request
-                  request:
-                    service: VeraCrypt
-                    method: setProfile
-                successUrl: /services/veracrypt
-      - template: delete
-        enabledBind: "oneSelected && _selected[0].is_profile"
+          type: request
+          request:
+            service: VeraCrypt
+            method: setProfile
+            params:
+              uuid: "{{ uuid }}"
+              name: "{{ name }}"
+              type: "{{ type }}"
+              shared_folder_uuid: "{{ shared_folder_uuid }}"
+              container_location: "{{ container_location }}"
+              filename: "{{ filename }}"
+              endpoint_folder: "{{ endpoint_folder }}"
+              password: "{{ password }}"
+              permissions: "{{ permissions }}"
+              remember_configs: "{{ remember_configs }}"
+              save_password: true
+          successUrl: "/services/veracrypt/profiles"
+      - id: delete
+        text: _("Delete Profile")
+        icon: "mdi:delete"
         execute:
           type: request
           request:
             service: VeraCrypt
             method: deleteProfile
             params:
-              uuid: "{{ _selected[0].uuid }}"
-      - type: iconButton
-        icon: mdi:play-circle-outline
-        tooltip: _("Mount Selected Profile")
-        enabledBind: "oneSelected && _selected[0].mount_enabled"
+              uuid: "{{ uuid }}"
+          successUrl: "/services/veracrypt/profiles"
+      - id: mount
+        text: _("Mount Container")
+        icon: "mdi:play-circle-outline"
+        enabledBind: "installed"
         execute:
-          type: formDialog
-          formDialog:
-            title: _("Mount VeraCrypt Profile ...")
-            fields:
-              - type: hidden
-                name: uuid
-                value: "{{ _selected[0].uuid }}"
-              - type: textInput
-                name: name
-                label: _("Profile Name")
-                value: "{{ _selected[0].name }}"
-                readonly: true
-              - type: passwordInput
-                name: password
-                label: _("VeraCrypt Password")
-                value: ""
-                hint: _("Optional - Leave blank to use the saved password.")
-            buttons:
-              submit:
-                text: _("Mount")
-                execute:
-                  type: request
-                  request:
-                    service: VeraCrypt
-                    method: mount
-                    params:
-                      uuid: "{{ uuid }}"
-                      password: "{{ password }}"
-                successUrl: /services/veracrypt
-      - type: iconButton
-        icon: mdi:stop-circle-outline
-        tooltip: _("Unmount Selected Profile")
-        enabledBind: "oneSelected && _selected[0].unmount_enabled"
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Mounting VeraCrypt Encrypted Volume ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: mountManual
+                params:
+                  type: "{{ type }}"
+                  shared_folder_uuid: "{{ shared_folder_uuid }}"
+                  container_location: "{{ container_location }}"
+                  filename: "{{ filename }}"
+                  endpoint_folder: "{{ endpoint_folder }}"
+                  password: "{{ password }}"
+                  permissions: "{{ permissions }}"
+      - id: unmount
+        text: _("Unmount Container")
+        icon: "mdi:stop-circle-outline"
+        enabledBind: "installed"
         execute:
-          type: request
-          request:
-            service: VeraCrypt
-            method: unmount
-            params:
-              uuid: "{{ _selected[0].uuid }}"
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Unmounting VeraCrypt Encrypted Volume ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: unmount
+                params:
+                  endpoint_folder: "{{ endpoint_folder }}"

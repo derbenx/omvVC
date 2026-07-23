@@ -33,6 +33,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("get");
         $this->registerMethod("set");
         $this->registerMethod("getProfileList");
+        $this->registerMethod("getProfileDetails");
         $this->registerMethod("setProfile");
         $this->registerMethod("deleteProfile");
         $this->registerMethod("mount");
@@ -685,36 +686,87 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         return ["success" => true, "output" => $output];
     }
 
+    public function getProfileDetails($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.veracrypt.getProfileDetails");
+
+        $installed = $this->isVeraCryptInstalled();
+        $uuid = isset($params['uuid']) ? $params['uuid'] : '';
+
+        $profile = [
+            "installed" => $installed,
+            "vc_installed_status" => "🟢 VeraCrypt installed",
+            "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
+            "uuid" => $uuid,
+            "name" => "",
+            "type" => "file",
+            "shared_folder_uuid" => "",
+            "container_location" => "",
+            "filename" => "",
+            "endpoint_folder" => "",
+            "password" => "",
+            "permissions" => "777",
+            "save_password" => false,
+            "remember_configs" => true
+        ];
+
+        if (!empty($uuid)) {
+            try {
+                $config = $this->getConfigObject();
+                $profiles = $config->get("profiles") ? $config->get("profiles") : [];
+                if (isset($profiles['profile'])) {
+                    foreach ($profiles['profile'] as $p) {
+                        if ($p['uuid'] === $uuid) {
+                            foreach ($p as $key => $val) {
+                                $profile[$key] = $val;
+                            }
+                            break;
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // ignore
+            }
+        }
+
+        return $profile;
+    }
+
     public function unmount($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.unmount");
         $this->checkVeraCryptInstalled();
 
-        $uuid = $params['uuid'];
-        $targetProfile = null;
-        try {
-            $config = $this->getConfigObject();
-            $profiles = $config->get("profiles") ? $config->get("profiles") : [];
-            if (isset($profiles['profile'])) {
-                foreach ($profiles['profile'] as $p) {
-                    if ($p['uuid'] === $uuid) {
-                        $targetProfile = $p;
-                        break;
+        $uuid = isset($params['uuid']) ? $params['uuid'] : '';
+        $endpoint = isset($params['endpoint_folder']) ? $params['endpoint_folder'] : '';
+        $sfUuid = '';
+        $containerLoc = '';
+
+        if (!empty($uuid)) {
+            $targetProfile = null;
+            try {
+                $config = $this->getConfigObject();
+                $profiles = $config->get("profiles") ? $config->get("profiles") : [];
+                if (isset($profiles['profile'])) {
+                    foreach ($profiles['profile'] as $p) {
+                        if ($p['uuid'] === $uuid) {
+                            $targetProfile = $p;
+                            break;
+                        }
                     }
                 }
+            } catch (\Exception $e) {
+                // ignore
             }
-        } catch (\Exception $e) {
-            // ignore
-        }
 
-        if (!$targetProfile) {
-            throw new \OMV\Exception("Profile not found.");
+            if ($targetProfile) {
+                $containerLoc = isset($targetProfile['container_location']) ? $targetProfile['container_location'] : '';
+                $endpoint = isset($targetProfile['endpoint_folder']) ? $targetProfile['endpoint_folder'] : '';
+                $sfUuid = isset($targetProfile['shared_folder_uuid']) ? $targetProfile['shared_folder_uuid'] : '';
+            }
         }
-
-        $containerLoc = isset($targetProfile['container_location']) ? $targetProfile['container_location'] : '';
-        $endpoint = isset($targetProfile['endpoint_folder']) ? $targetProfile['endpoint_folder'] : '';
-        $sfUuid = isset($targetProfile['shared_folder_uuid']) ? $targetProfile['shared_folder_uuid'] : '';
 
         if (!empty($sfUuid)) {
             try {

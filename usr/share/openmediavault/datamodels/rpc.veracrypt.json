@@ -9,6 +9,20 @@
 	},
 	{
 		"type": "rpc",
+		"id": "rpc.veracrypt.getProfileDetails",
+		"params": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"format": "uuidv4",
+					"required": false
+				}
+			}
+		}
+	},
+	{
+		"type": "rpc",
 		"id": "rpc.veracrypt.set",
 		"params": {
 			"type": "object",
@@ -177,7 +191,10 @@
 				"uuid": {
 					"type": "string",
 					"format": "uuidv4",
-					"required": true
+					"required": false
+				},
+				"endpoint_folder": {
+					"type": "string"
 				}
 			}
 		}
