@@ -171,5 +171,19 @@
 				}
 			}
 		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.getStatus",
+		"params": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"format": "uuidv4",
+					"required": false
+				}
+			}
+		}
 	}
 ]

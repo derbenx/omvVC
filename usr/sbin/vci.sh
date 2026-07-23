@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # VeraCrypt automatic console installer helper script
 
 set -e
@@ -20,13 +20,6 @@ else
 fi
 
 # Normalize OS ID and codename to match Launchpad package naming
-# Launchpad uses:
-# Debian 13 -> Debian-13
-# Debian 12 -> Debian-12
-# Debian 11 -> Debian-11
-# Ubuntu 24.04 -> Ubuntu-24.04
-# Ubuntu 22.04 -> Ubuntu-22.04
-# Ubuntu 20.04 -> Ubuntu-20.04
 OS_NAME=""
 if [ "$OS_ID" = "ubuntu" ]; then
     if [ "$VERSION_ID" = "24.04" ]; then
@@ -54,10 +47,10 @@ fi
 echo "Detected OS: $OS_NAME, Architecture: $ARCH"
 
 # We will try fallback versions if download fails
-VC_VERSIONS=("1.26.24" "1.26.29" "1.26.14" "1.26.20")
+VC_VERSIONS="1.26.24 1.26.29 1.26.14 1.26.20"
 DOWNLOAD_SUCCESS=false
 
-for VC_VER in "${VC_VERSIONS[@]}"; do
+for VC_VER in $VC_VERSIONS; do
     URL="https://launchpad.net/veracrypt/trunk/${VC_VER}/+download/veracrypt-console-${VC_VER}-${OS_NAME}-${ARCH}.deb"
     echo "Attempting to download VeraCrypt version ${VC_VER} for ${OS_NAME}..."
     if wget --spider -q "$URL"; then
@@ -68,9 +61,7 @@ for VC_VER in "${VC_VERSIONS[@]}"; do
         fi
     else
         # If the specific OS version wasn't found, try a generic or fallback OS version if on Debian
-        # e.g., if on trixie/13 but only 12 is available on that veracrypt version, or vice-versa
         echo "Not found. Trying fallback package options..."
-        # If trixie wasn't found, fallback to Debian-12 for this version attempt
         if [ "$OS_NAME" = "Debian-13" ]; then
             FALLBACK_URL="https://launchpad.net/veracrypt/trunk/${VC_VER}/+download/veracrypt-console-${VC_VER}-Debian-12-${ARCH}.deb"
             if wget --spider -q "$FALLBACK_URL"; then

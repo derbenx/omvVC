@@ -77,19 +77,19 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         return $object->getAssoc();
     }
 
+    private function isVeraCryptInstalled()
+    {
+        if (file_exists("/usr/bin/veracrypt") || file_exists("/usr/sbin/veracrypt") || file_exists("/usr/local/bin/veracrypt")) {
+            return true;
+        }
+        $cmdCheck = new \OMV\System\Process("which", ["veracrypt"]);
+        $cmdCheck->execute($output, $exitStatus);
+        return $exitStatus === 0;
+    }
+
     private function checkVeraCryptInstalled()
     {
-        $installed = false;
-        if (file_exists("/usr/bin/veracrypt") || file_exists("/usr/sbin/veracrypt") || file_exists("/usr/local/bin/veracrypt")) {
-            $installed = true;
-        } else {
-            $cmdCheck = new \OMV\System\Process("which", ["veracrypt"]);
-            $cmdCheck->execute($output, $exitStatus);
-            if ($exitStatus === 0) {
-                $installed = true;
-            }
-        }
-        if (!$installed) {
+        if (!$this->isVeraCryptInstalled()) {
             throw new \OMV\Exception("VeraCrypt is not installed on this system. Please go to the 'VeraCrypt Installer' tab to install it first.");
         }
     }
@@ -108,16 +108,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         }
 
         // Check if veracrypt is installed
-        $installed = false;
-        if (file_exists("/usr/bin/veracrypt") || file_exists("/usr/sbin/veracrypt") || file_exists("/usr/local/bin/veracrypt")) {
-            $installed = true;
-        } else {
-            $cmdCheck = new \OMV\System\Process("which", ["veracrypt"]);
-            $cmdCheck->execute($output, $exitStatus);
-            if ($exitStatus === 0) {
-                $installed = true;
-            }
-        }
+        $installed = $this->isVeraCryptInstalled();
 
         // Get active mounts
         $activeMounts = [];
@@ -505,20 +496,10 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     public function getStatus($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
-        $this->validateMethodParams($params, "rpc.veracrypt.get_status");
+        $this->validateMethodParams($params, "rpc.veracrypt.getStatus");
 
         // 1. Check if VeraCrypt is installed
-        $installed = false;
-        $cmdCheck = new \OMV\System\Process("which", ["veracrypt"]);
-        $cmdCheck->execute($output, $exitStatus);
-        if ($exitStatus === 0) {
-            $installed = true;
-        } else {
-            // Also check common binary paths just in case
-            if (file_exists("/usr/bin/veracrypt") || file_exists("/usr/sbin/veracrypt") || file_exists("/usr/local/bin/veracrypt")) {
-                $installed = true;
-            }
-        }
+        $installed = $this->isVeraCryptInstalled();
 
         // 2. Check mount status of the profile if uuid is provided, or list active mounts
         $mounted = false;

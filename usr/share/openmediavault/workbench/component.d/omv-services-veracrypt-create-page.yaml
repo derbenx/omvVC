@@ -9,12 +9,23 @@ data:
       get:
         method: getStatus
     fields:
-      - type: checkbox
-        name: installed
-        label: _("VeraCrypt Status Check")
-        value: false
+      - type: textInput
+        name: vc_installed_status
+        label: _("VeraCrypt Status")
+        value: _("VeraCrypt installed")
         readonly: true
-        hint: _("VeraCrypt is not installed on this system. You must install it from the 'VeraCrypt Installer' tab first.")
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed
+              arg1: true
+      - type: textInput
+        name: vc_not_installed_status
+        label: _("VeraCrypt Status")
+        value: _("Please Install VeraCrypt!")
+        readonly: true
         modifiers:
           - type: visible
             constraint:
@@ -129,6 +140,7 @@ data:
       - id: create
         text: _("Create & Format Volume")
         icon: "mdi:plus-circle-outline"
+        enabledBind: "installed"
         modifiers:
           - type: visible
             constraint:
