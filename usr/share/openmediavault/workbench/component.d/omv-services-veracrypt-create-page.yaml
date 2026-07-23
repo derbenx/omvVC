@@ -21,7 +21,8 @@ data:
           - type: visible
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "yes"
       - type: textInput
         name: vc_not_installed_status
@@ -32,7 +33,8 @@ data:
           - type: visible
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "no"
       - type: sharedfolder
         name: shared_folder_uuid
@@ -43,7 +45,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "no"
       - type: textInput
         name: path
@@ -55,7 +58,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "no"
       - type: textInput
         name: size
@@ -67,7 +71,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "no"
       - type: passwordInput
         name: password
@@ -78,7 +83,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "no"
       - type: select
         name: filesystem
@@ -94,7 +100,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "no"
       - type: select
         name: encryption
@@ -109,7 +116,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "no"
       - type: select
         name: hash
@@ -123,7 +131,8 @@ data:
           - type: readonly
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "no"
     buttons:
       - id: create

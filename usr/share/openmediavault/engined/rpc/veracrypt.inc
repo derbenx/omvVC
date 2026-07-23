@@ -168,7 +168,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
     private function isVeraCryptInstalled()
     {
-        $paths = [
+        $testPaths = [
             "/usr/bin/veracrypt",
             "/usr/sbin/veracrypt",
             "/usr/local/bin/veracrypt",
@@ -177,24 +177,21 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             "/usr/bin/veracrypt-console",
             "/usr/sbin/veracrypt-console"
         ];
-        foreach ($paths as $path) {
-            if (@file_exists($path)) {
-                return true;
+        foreach ($testPaths as $path) {
+            try {
+                $proc = new \OMV\System\Process("test", ["-f", $path]);
+                $proc->execute($output, $exitStatus);
+                if ($exitStatus === 0) {
+                    return true;
+                }
+            } catch (\Exception $e) {
+                // ignore
             }
         }
         try {
-            $proc = new \OMV\System\Process("sh", ["-c", "command -v veracrypt || which veracrypt"]);
+            $proc = new \OMV\System\Process("sh", ["-c", "command -v veracrypt || which veracrypt || find /usr -name veracrypt -type f"]);
             $proc->execute($output, $exitStatus);
             if ($exitStatus === 0 && !empty($output)) {
-                return true;
-            }
-        } catch (\Exception $e) {
-            // ignore
-        }
-        try {
-            $proc = new \OMV\System\Process("veracrypt", ["-t", "--version"]);
-            $proc->execute($output, $exitStatus);
-            if ($exitStatus === 0 || $exitStatus === 1) {
                 return true;
             }
         } catch (\Exception $e) {

@@ -24,7 +24,8 @@ data:
           - type: visible
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "yes"
       - type: textInput
         name: vc_not_installed_status
@@ -35,7 +36,8 @@ data:
           - type: visible
             constraint:
               operator: eq
-              arg0: "prop:installed_str"
+              arg0:
+                prop: installed_str
               arg1: "no"
       - type: select
         name: saved_profile
@@ -102,6 +104,11 @@ data:
         execute:
           type: url
           url: "/services/veracrypt/profiles/new"
+      - id: save
+        text: _("Save")
+        icon: "mdi:content-save"
+        execute:
+          type: submit
       - id: delete
         text: _("Delete")
         icon: "mdi:delete"
