@@ -131,20 +131,16 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             }
         }
         try {
-            $proc = new \OMV\System\Process("dpkg", ["-l"]);
+            $proc = new \OMV\System\Process("sh", ["-c", "command -v veracrypt || which veracrypt"]);
             $proc->execute($output, $exitStatus);
-            if ($exitStatus === 0) {
-                foreach ($output as $line) {
-                    if (preg_match('/^\s*ii\s+(veracrypt|veracrypt-console)\s/i', $line)) {
-                        return true;
-                    }
-                }
+            if ($exitStatus === 0 && !empty($output)) {
+                return true;
             }
         } catch (\Exception $e) {
             // ignore
         }
         try {
-            $proc = new \OMV\System\Process("veracrypt", ["--version"]);
+            $proc = new \OMV\System\Process("veracrypt", ["-t", "--version"]);
             $proc->execute($output, $exitStatus);
             if ($exitStatus === 0 || $exitStatus === 1) {
                 return true;
@@ -153,10 +149,14 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             // ignore
         }
         try {
-            $proc = new \OMV\System\Process("which", ["veracrypt"]);
+            $proc = new \OMV\System\Process("dpkg", ["-l"]);
             $proc->execute($output, $exitStatus);
             if ($exitStatus === 0) {
-                return true;
+                foreach ($output as $line) {
+                    if (preg_match('/^\s*ii\s+(veracrypt|veracrypt-console)\s/i', $line)) {
+                        return true;
+                    }
+                }
             }
         } catch (\Exception $e) {
             // ignore
@@ -175,12 +175,20 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
 
-        $config = $this->getConfigObject();
-        $profilesData = $config->get("profiles") ? $config->get("profiles") : [];
         $profilesList = [];
-
-        if (isset($profilesData['profile'])) {
-            $profilesList = $profilesData['profile'];
+        try {
+            $config = $this->getConfigObject();
+            $profilesData = $config->get("profiles") ? $config->get("profiles") : [];
+            if (isset($profilesData['profile'])) {
+                $profilesList = $profilesData['profile'];
+            }
+        } catch (\Exception $e) {
+            try {
+                $cmd = new \OMV\System\Process("omv-confdbadm", ["create", "conf.service.veracrypt"]);
+                $cmd->execute();
+            } catch (\Exception $ex) {
+                // ignore
+            }
         }
 
         // Check if veracrypt is installed
@@ -284,12 +292,26 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         }
 
         $db = \OMV\Config\Database::getInstance();
-        $object = $this->getConfigObject();
-        $profilesData = $object->get("profiles") ? $object->get("profiles") : [];
+        $profilesData = [];
         $profilesList = [];
-
-        if (isset($profilesData['profile'])) {
-            $profilesList = $profilesData['profile'];
+        try {
+            $object = $this->getConfigObject();
+            $profilesData = $object->get("profiles") ? $object->get("profiles") : [];
+            if (isset($profilesData['profile'])) {
+                $profilesList = $profilesData['profile'];
+            }
+        } catch (\Exception $e) {
+            try {
+                $cmd = new \OMV\System\Process("omv-confdbadm", ["create", "conf.service.veracrypt"]);
+                $cmd->execute();
+                $object = $this->getConfigObject();
+                $profilesData = $object->get("profiles") ? $object->get("profiles") : [];
+                if (isset($profilesData['profile'])) {
+                    $profilesList = $profilesData['profile'];
+                }
+            } catch (\Exception $ex) {
+                // ignore
+            }
         }
 
         // Handle profile modifications (if remember_configs is false, clear password)
@@ -351,12 +373,26 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         }
 
         $db = \OMV\Config\Database::getInstance();
-        $object = $this->getConfigObject();
-        $profilesData = $object->get("profiles") ? $object->get("profiles") : [];
+        $profilesData = [];
         $profilesList = [];
-
-        if (isset($profilesData['profile'])) {
-            $profilesList = $profilesData['profile'];
+        try {
+            $object = $this->getConfigObject();
+            $profilesData = $object->get("profiles") ? $object->get("profiles") : [];
+            if (isset($profilesData['profile'])) {
+                $profilesList = $profilesData['profile'];
+            }
+        } catch (\Exception $e) {
+            try {
+                $cmd = new \OMV\System\Process("omv-confdbadm", ["create", "conf.service.veracrypt"]);
+                $cmd->execute();
+                $object = $this->getConfigObject();
+                $profilesData = $object->get("profiles") ? $object->get("profiles") : [];
+                if (isset($profilesData['profile'])) {
+                    $profilesList = $profilesData['profile'];
+                }
+            } catch (\Exception $ex) {
+                // ignore
+            }
         }
 
         $newProfilesList = [];
@@ -445,17 +481,20 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         $uuid = $params['uuid'];
-        $config = $this->getConfigObject();
-        $profiles = $config->get("profiles") ? $config->get("profiles") : [];
         $targetProfile = null;
-
-        if (isset($profiles['profile'])) {
-            foreach ($profiles['profile'] as $p) {
-                if ($p['uuid'] === $uuid) {
-                    $targetProfile = $p;
-                    break;
+        try {
+            $config = $this->getConfigObject();
+            $profiles = $config->get("profiles") ? $config->get("profiles") : [];
+            if (isset($profiles['profile'])) {
+                foreach ($profiles['profile'] as $p) {
+                    if ($p['uuid'] === $uuid) {
+                        $targetProfile = $p;
+                        break;
+                    }
                 }
             }
+        } catch (\Exception $e) {
+            // ignore
         }
 
         if (!$targetProfile) {
@@ -539,17 +578,20 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         $uuid = $params['uuid'];
-        $config = $this->getConfigObject();
-        $profiles = $config->get("profiles") ? $config->get("profiles") : [];
         $targetProfile = null;
-
-        if (isset($profiles['profile'])) {
-            foreach ($profiles['profile'] as $p) {
-                if ($p['uuid'] === $uuid) {
-                    $targetProfile = $p;
-                    break;
+        try {
+            $config = $this->getConfigObject();
+            $profiles = $config->get("profiles") ? $config->get("profiles") : [];
+            if (isset($profiles['profile'])) {
+                foreach ($profiles['profile'] as $p) {
+                    if ($p['uuid'] === $uuid) {
+                        $targetProfile = $p;
+                        break;
+                    }
                 }
             }
+        } catch (\Exception $e) {
+            // ignore
         }
 
         if (!$targetProfile) {
@@ -657,17 +699,20 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
         if (isset($params['uuid']) && !empty($params['uuid'])) {
             $uuid = $params['uuid'];
-            $config = $this->getConfigObject();
-            $profiles = $config->get("profiles") ? $config->get("profiles") : [];
             $targetProfile = null;
-
-            if (isset($profiles['profile'])) {
-                foreach ($profiles['profile'] as $p) {
-                    if ($p['uuid'] === $uuid) {
-                        $targetProfile = $p;
-                        break;
+            try {
+                $config = $this->getConfigObject();
+                $profiles = $config->get("profiles") ? $config->get("profiles") : [];
+                if (isset($profiles['profile'])) {
+                    foreach ($profiles['profile'] as $p) {
+                        if ($p['uuid'] === $uuid) {
+                            $targetProfile = $p;
+                            break;
+                        }
                     }
                 }
+            } catch (\Exception $e) {
+                // ignore
             }
 
             if ($targetProfile) {
