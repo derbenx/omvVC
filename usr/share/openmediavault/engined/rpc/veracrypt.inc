@@ -45,6 +45,20 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("getStatus");
     }
 
+    private function generateUuid4()
+    {
+        if (class_exists('\OMV\Utils\Uuid')) {
+            return \OMV\Utils\Uuid::uuid4();
+        }
+        return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0x0fff) | 0x4000,
+            mt_rand(0, 0x3fff) | 0x8000,
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+        );
+    }
+
     private function filterProfileData($profile)
     {
         $allowedKeys = [
@@ -55,10 +69,8 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             "container_location",
             "endpoint_folder",
             "password",
-            "filename",
             "permissions",
-            "save_password",
-            "remember_configs"
+            "save_password"
         ];
         $filtered = [];
         foreach ($allowedKeys as $key) {
@@ -71,8 +83,6 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                     $filtered[$key] = "file";
                 } elseif ($key === "save_password") {
                     $filtered[$key] = false;
-                } elseif ($key === "remember_configs") {
-                    $filtered[$key] = true;
                 } else {
                     $filtered[$key] = "";
                 }
@@ -560,7 +570,6 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             }
         }
 
-        $filename = isset($targetProfile['filename']) ? $targetProfile['filename'] : '';
         $perm = isset($targetProfile['permissions']) ? $targetProfile['permissions'] : '777';
         $sfUuid = isset($targetProfile['shared_folder_uuid']) ? $targetProfile['shared_folder_uuid'] : '';
 
@@ -600,12 +609,8 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $script = "/usr/sbin/vcd.sh";
             $args = [$device, $mountpoint, $password, $perm];
         } else {
-            // For file, build path to container file
-            if (strpos($filename, '/') === 0) {
-                $containerPath = $filename;
-            } else {
-                $containerPath = build_path(DIRECTORY_SEPARATOR, $containerLoc, $filename);
-            }
+            // For file, the container location is the full path of the container
+            $containerPath = $containerLoc;
             $script = "/usr/sbin/vcm.sh";
             $args = [$containerPath, $mountpoint, $password, $perm];
         }
@@ -630,7 +635,6 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $containerLoc = isset($params['container_location']) ? $params['container_location'] : '';
         $endpoint = isset($params['endpoint_folder']) ? $params['endpoint_folder'] : '';
         $password = isset($params['password']) ? $params['password'] : '';
-        $filename = isset($params['filename']) ? $params['filename'] : '';
         $perm = isset($params['permissions']) ? $params['permissions'] : '777';
         $sfUuid = isset($params['shared_folder_uuid']) ? $params['shared_folder_uuid'] : '';
 
@@ -667,11 +671,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $script = "/usr/sbin/vcd.sh";
             $args = [$device, $mountpoint, $password, $perm];
         } else {
-            if (strpos($filename, '/') === 0) {
-                $containerPath = $filename;
-            } else {
-                $containerPath = build_path(DIRECTORY_SEPARATOR, $containerLoc, $filename);
-            }
+            $containerPath = $containerLoc;
             $script = "/usr/sbin/vcm.sh";
             $args = [$containerPath, $mountpoint, $password, $perm];
         }
@@ -694,8 +694,14 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $installed = $this->isVeraCryptInstalled();
         $uuid = isset($params['uuid']) ? $params['uuid'] : '';
 
+        // Ensure a valid UUIDv4 is generated if empty, new, or invalid
+        if (empty($uuid) || $uuid === "new" || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $uuid)) {
+            $uuid = $this->generateUuid4();
+        }
+
         $profile = [
             "installed" => $installed,
+            "installed_str" => $installed ? "yes" : "no",
             "vc_installed_status" => "🟢 VeraCrypt installed",
             "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
             "uuid" => $uuid,
@@ -703,24 +709,26 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             "type" => "file",
             "shared_folder_uuid" => "",
             "container_location" => "",
-            "filename" => "",
             "endpoint_folder" => "",
             "password" => "",
             "permissions" => "777",
-            "save_password" => false,
-            "remember_configs" => true
+            "save_password" => false
         ];
 
-        if (!empty($uuid)) {
+        if (isset($params['uuid']) && !empty($params['uuid']) && $params['uuid'] !== "new") {
+            $passedUuid = $params['uuid'];
             try {
                 $config = $this->getConfigObject();
                 $profiles = $config->get("profiles") ? $config->get("profiles") : [];
                 if (isset($profiles['profile'])) {
                     foreach ($profiles['profile'] as $p) {
-                        if ($p['uuid'] === $uuid) {
+                        if ($p['uuid'] === $passedUuid) {
                             foreach ($p as $key => $val) {
-                                $profile[$key] = $val;
+                                if ($key !== "filename" && $key !== "remember_configs") {
+                                    $profile[$key] = $val;
+                                }
                             }
+                            $profile['uuid'] = $passedUuid;
                             break;
                         }
                     }
@@ -977,6 +985,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
         return [
             "installed" => $installed,
+            "installed_str" => $installed ? "yes" : "no",
             "mounted" => $mounted,
             "active_mounts" => $activeMounts,
             "vc_installed_status" => "🟢 VeraCrypt installed",

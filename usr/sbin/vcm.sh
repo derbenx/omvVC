@@ -26,9 +26,30 @@ if [[ "$PERM" =~ ^[0-7]{3}$ ]]; then
 fi
 FS_OPTS="umask=${UMASK}"
 
-# 3. Mount the file container with specified permissions
+# 3. Mount the file container with specified permissions, falling back if fs-options fails
+MOUNT_OK=false
 if [ -n "$PASSWORD" ]; then
-    printf "%s\n" "$PASSWORD" | veracrypt -t --mount "$CONTAINER" "$MOUNTPOINT" --fs-options="$FS_OPTS" --pim=0 --keyfiles="" --protect-hidden=no --non-interactive --stdin
+    if printf "%s\n" "$PASSWORD" | veracrypt -t --mount "$CONTAINER" "$MOUNTPOINT" --fs-options="$FS_OPTS" --pim=0 --keyfiles="" --protect-hidden=no --non-interactive --stdin; then
+        MOUNT_OK=true
+    else
+        echo "Mounting with fs-options failed, trying fallback without fs-options..."
+        if printf "%s\n" "$PASSWORD" | veracrypt -t --mount "$CONTAINER" "$MOUNTPOINT" --pim=0 --keyfiles="" --protect-hidden=no --non-interactive --stdin; then
+            MOUNT_OK=true
+        fi
+    fi
 else
-    veracrypt -t --mount "$CONTAINER" "$MOUNTPOINT" --fs-options="$FS_OPTS" --pim=0 --keyfiles="" --protect-hidden=no --non-interactive
+    if veracrypt -t --mount "$CONTAINER" "$MOUNTPOINT" --fs-options="$FS_OPTS" --pim=0 --keyfiles="" --protect-hidden=no --non-interactive; then
+        MOUNT_OK=true
+    else
+        echo "Mounting with fs-options failed, trying fallback without fs-options..."
+        if veracrypt -t --mount "$CONTAINER" "$MOUNTPOINT" --pim=0 --keyfiles="" --protect-hidden=no --non-interactive; then
+            MOUNT_OK=true
+        fi
+    fi
+fi
+
+if [ "$MOUNT_OK" = "true" ]; then
+    exit 0
+else
+    exit 1
 fi

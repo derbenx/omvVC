@@ -10,8 +10,8 @@ data:
         method: getStatus
     fields:
       - type: hidden
-        name: installed
-        value: false
+        name: installed_str
+        value: "no"
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
@@ -22,8 +22,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: true
+                prop: installed_str
+              arg1: "yes"
       - type: textInput
         name: vc_not_installed_status
         label: _("VeraCrypt Status")
@@ -34,8 +34,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
       - type: sharedfolder
         name: shared_folder_uuid
         label: _("Select Shared Folder (Optional)")
@@ -46,8 +46,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
       - type: textInput
         name: path
         label: _("Target Container File / Partition Device Path")
@@ -59,8 +59,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
       - type: textInput
         name: size
         label: _("Volume Size")
@@ -72,8 +72,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
       - type: passwordInput
         name: password
         label: _("VeraCrypt Passphrase")
@@ -84,8 +84,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
       - type: select
         name: filesystem
         label: _("Filesystem Format")
@@ -101,8 +101,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
       - type: select
         name: encryption
         label: _("Encryption Algorithm")
@@ -117,8 +117,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
       - type: select
         name: hash
         label: _("Hash Algorithm")
@@ -132,8 +132,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
     buttons:
       - id: create
         text: _("Create & Format Volume")

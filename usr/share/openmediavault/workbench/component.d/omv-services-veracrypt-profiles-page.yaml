@@ -10,8 +10,8 @@ data:
         method: getProfileDetails
     fields:
       - type: hidden
-        name: installed
-        value: false
+        name: installed_str
+        value: "no"
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
@@ -22,8 +22,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: true
+                prop: installed_str
+              arg1: "yes"
       - type: textInput
         name: vc_not_installed_status
         label: _("VeraCrypt Status")
@@ -34,17 +34,59 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
       - type: select
         name: saved_profile
         label: _("Select Saved Profile")
         value: ""
-        hint: _("Select a saved profile and click 'Load Selected Profile' below to populate this form.")
+        hint: _("Select a saved profile and click Load below to populate this form.")
         store:
           proxy:
             service: VeraCrypt
             method: getProfileList
+      - type: button
+        name: load
+        label: _("Load")
+        execute:
+          type: url
+          url: "/services/veracrypt/profiles/{{ saved_profile }}"
+      - type: button
+        name: clear
+        label: _("Clear")
+        execute:
+          type: url
+          url: "/services/veracrypt/profiles/new"
+      - type: button
+        name: save
+        label: _("Save")
+        execute:
+          type: request
+          request:
+            service: VeraCrypt
+            method: setProfile
+            params:
+              uuid: "{{ uuid }}"
+              name: "{{ name }}"
+              type: "{{ type }}"
+              shared_folder_uuid: "{{ shared_folder_uuid }}"
+              container_location: "{{ container_location }}"
+              endpoint_folder: "{{ endpoint_folder }}"
+              password: "{{ password }}"
+              permissions: "{{ permissions }}"
+              save_password: true
+          successUrl: "/services/veracrypt/profiles"
+      - type: button
+        name: delete
+        label: _("Delete")
+        execute:
+          type: request
+          request:
+            service: VeraCrypt
+            method: deleteProfile
+            params:
+              uuid: "{{ uuid }}"
+          successUrl: "/services/veracrypt/profiles"
       - type: hidden
         name: uuid
         value: "{{ newconfobjuuid }}"
@@ -73,17 +115,6 @@ data:
         required: true
         hint: _("Enter the parent path to the file container, or a device partition name such as sdc1.")
       - type: textInput
-        name: filename
-        label: _("File Container Name")
-        value: ""
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: type
-              arg1: "file"
-      - type: textInput
         name: endpoint_folder
         label: _("Endpoint Folder (Mountpoint)")
         value: ""
@@ -98,58 +129,9 @@ data:
         label: _("Permissions (Standard Octal)")
         value: "777"
         hint: _("Examples include 777 (completely public), 770 (group-accessible), or 755 (read-only for others).")
-      - type: checkbox
-        name: remember_configs
-        label: _("Remember Configurations & Credentials")
-        value: true
-        hint: _("Unchecking this will prevent storing sensitive credentials in OMV database.")
     buttons:
-      - id: load
-        text: _("Load Selected Profile")
-        icon: "mdi:folder-open"
-        execute:
-          type: url
-          url: "/services/veracrypt/profiles/{{ saved_profile }}"
-      - id: new
-        text: _("New / Clear Form")
-        icon: "mdi:file-plus"
-        execute:
-          type: url
-          url: "/services/veracrypt/profiles"
-      - id: save
-        text: _("Save Profile Settings")
-        icon: "mdi:content-save"
-        execute:
-          type: request
-          request:
-            service: VeraCrypt
-            method: setProfile
-            params:
-              uuid: "{{ uuid }}"
-              name: "{{ name }}"
-              type: "{{ type }}"
-              shared_folder_uuid: "{{ shared_folder_uuid }}"
-              container_location: "{{ container_location }}"
-              filename: "{{ filename }}"
-              endpoint_folder: "{{ endpoint_folder }}"
-              password: "{{ password }}"
-              permissions: "{{ permissions }}"
-              remember_configs: "{{ remember_configs }}"
-              save_password: true
-          successUrl: "/services/veracrypt/profiles"
-      - id: delete
-        text: _("Delete Profile")
-        icon: "mdi:delete"
-        execute:
-          type: request
-          request:
-            service: VeraCrypt
-            method: deleteProfile
-            params:
-              uuid: "{{ uuid }}"
-          successUrl: "/services/veracrypt/profiles"
       - id: mount
-        text: _("Mount Container")
+        text: _("Mount")
         icon: "mdi:play-circle-outline"
         enabledBind: "installed"
         execute:
@@ -165,12 +147,11 @@ data:
                   type: "{{ type }}"
                   shared_folder_uuid: "{{ shared_folder_uuid }}"
                   container_location: "{{ container_location }}"
-                  filename: "{{ filename }}"
                   endpoint_folder: "{{ endpoint_folder }}"
                   password: "{{ password }}"
                   permissions: "{{ permissions }}"
       - id: unmount
-        text: _("Unmount Container")
+        text: _("Unmount")
         icon: "mdi:stop-circle-outline"
         enabledBind: "installed"
         execute:

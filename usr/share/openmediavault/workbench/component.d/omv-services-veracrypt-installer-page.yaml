@@ -10,8 +10,8 @@ data:
         method: getStatus
     fields:
       - type: hidden
-        name: installed
-        value: false
+        name: installed_str
+        value: "no"
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
@@ -22,8 +22,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: true
+                prop: installed_str
+              arg1: "yes"
       - type: textInput
         name: vc_not_installed_status
         label: _("VeraCrypt Status")
@@ -34,8 +34,8 @@ data:
             constraint:
               operator: eq
               arg0:
-                prop: installed
-              arg1: false
+                prop: installed_str
+              arg1: "no"
     buttons:
       - id: install
         text: _("Install VeraCrypt")
