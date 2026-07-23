@@ -197,14 +197,18 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         // Get active mounts
         $activeMounts = [];
         if ($installed) {
-            $cmdList = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
-            $cmdList->execute($listOutput, $listExitStatus);
-            if ($listExitStatus === 0) {
-                foreach ($listOutput as $line) {
-                    if (preg_match('/on\s+(.+)$/', $line, $matches)) {
-                        $activeMounts[] = trim($matches[1]);
+            try {
+                $cmdList = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
+                $cmdList->execute($listOutput, $listExitStatus);
+                if ($listExitStatus === 0) {
+                    foreach ($listOutput as $line) {
+                        if (preg_match('/on\s+(.+)$/', $line, $matches)) {
+                            $activeMounts[] = trim($matches[1]);
+                        }
                     }
                 }
+            } catch (\Exception $e) {
+                // Ignore exception if veracrypt -l exits with non-zero (meaning no volumes are mounted)
             }
         }
 
@@ -681,19 +685,85 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         // 1. Check if VeraCrypt is installed
         $installed = $this->isVeraCryptInstalled();
 
+        // Diagnostic debug info logging to syslog
+        try {
+            $debug = [];
+            $debug['user'] = get_current_user();
+            if (function_exists('posix_getuid')) {
+                $debug['uid'] = posix_getuid();
+            }
+            $debug['open_basedir'] = ini_get('open_basedir');
+            $debug['path_env'] = getenv('PATH');
+
+            $paths = [
+                "/usr/bin/veracrypt",
+                "/usr/sbin/veracrypt",
+                "/usr/local/bin/veracrypt",
+                "/bin/veracrypt",
+                "/sbin/veracrypt",
+                "/usr/bin/veracrypt-console",
+                "/usr/sbin/veracrypt-console"
+            ];
+            foreach ($paths as $path) {
+                $debug["path_{$path}"] = @file_exists($path) ? "exists" : "not-found";
+            }
+
+            try {
+                $proc = new \OMV\System\Process("sh", ["-c", "command -v veracrypt || which veracrypt"]);
+                $proc->execute($shOutput, $shExit);
+                $debug['sh_which'] = "exit={$shExit}, output=" . implode("\n", $shOutput);
+            } catch (\Exception $e) {
+                $debug['sh_which'] = "exception=" . $e->getMessage();
+            }
+
+            try {
+                $proc = new \OMV\System\Process("veracrypt", ["-t", "--version"]);
+                $proc->execute($vcOutput, $vcExit);
+                $debug['veracrypt_version'] = "exit={$vcExit}, output=" . implode("\n", $vcOutput);
+            } catch (\Exception $e) {
+                $debug['veracrypt_version'] = "exception=" . $e->getMessage();
+            }
+
+            try {
+                $proc = new \OMV\System\Process("dpkg", ["-l"]);
+                $proc->execute($dpkgOutput, $dpkgExit);
+                $pkgs = [];
+                if ($dpkgExit === 0) {
+                    foreach ($dpkgOutput as $line) {
+                        if (preg_match('/veracrypt/i', $line)) {
+                            $pkgs[] = $line;
+                        }
+                    }
+                }
+                $debug['dpkg_veracrypt'] = "exit={$dpkgExit}, pkgs=" . implode("\n", $pkgs);
+            } catch (\Exception $e) {
+                $debug['dpkg_veracrypt'] = "exception=" . $e->getMessage();
+            }
+
+            openlog("openmediavault-veracrypt", LOG_ODELAY | LOG_PID, LOG_USER);
+            syslog(LOG_INFO, "Diagnostic Debug Info: " . json_encode($debug));
+            closelog();
+        } catch (\Exception $ex) {
+            // ignore debug errors
+        }
+
         // 2. Check mount status of the profile if uuid is provided, or list active mounts
         $mounted = false;
         $activeMounts = [];
 
         if ($installed) {
-            $cmdList = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
-            $cmdList->execute($listOutput, $listExitStatus);
-            if ($listExitStatus === 0) {
-                foreach ($listOutput as $line) {
-                    if (preg_match('/on\s+(.+)$/', $line, $matches)) {
-                        $activeMounts[] = trim($matches[1]);
+            try {
+                $cmdList = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
+                $cmdList->execute($listOutput, $listExitStatus);
+                if ($listExitStatus === 0) {
+                    foreach ($listOutput as $line) {
+                        if (preg_match('/on\s+(.+)$/', $line, $matches)) {
+                            $activeMounts[] = trim($matches[1]);
+                        }
                     }
                 }
+            } catch (\Exception $e) {
+                // Ignore exception if veracrypt -l exits with non-zero (meaning no volumes are mounted)
             }
         }
 
