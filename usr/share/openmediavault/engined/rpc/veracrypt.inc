@@ -309,13 +309,17 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $profile['is_virtual'] = false;
             $profile['mount_enabled'] = $installed;
             $profile['unmount_enabled'] = $installed;
+            $profile['value'] = $profile['uuid'];
+            $profile['label'] = $profile['name'];
             $resultList[] = $profile;
         }
 
         // Prepend virtual status row
         $statusRow = [
             "uuid" => "00000000-0000-0000-0000-000000000000",
+            "value" => "00000000-0000-0000-0000-000000000000",
             "name" => $installed ? "🟢 VeraCrypt is installed" : "🔴 VeraCrypt is NOT installed! Please install VeraCrypt from the Installer tab.",
+            "label" => $installed ? "🟢 VeraCrypt is installed" : "🔴 VeraCrypt is NOT installed! Please install VeraCrypt from the Installer tab.",
             "type" => $installed ? "Installed" : "NOT Installed",
             "container_location" => "Please check the Installer tab to install or purge.",
             "filename" => "",
@@ -707,7 +711,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $profile = [
             "installed" => $installed,
             "installed_str" => $installed ? "yes" : "no",
-            "vc_installed_status" => "🟢 VeraCrypt installed",
+            "vc_installed_status" => $installed ? "🟢 VeraCrypt installed" : "🔴 Please Install VeraCrypt!",
             "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
             "uuid" => $uuid,
             "name" => "",
@@ -1022,22 +1026,40 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                     if (empty($trimmedLine)) {
                         continue;
                     }
-                    // Pattern standard: "1: /path/to/container /dev/loopX /path/to/mountpoint"
-                    if (preg_match('/^(\d+):\s+(.+?)\s+(\S+)\s+(.+)$/', $trimmedLine, $matches)) {
+                    if (preg_match('/^(\d+):\s+(.+)$/', $trimmedLine, $matches)) {
+                        $slot = $matches[1];
+                        $rest = trim($matches[2]);
+                        $container = "";
+                        $device = "";
+                        $mountpoint = "";
+
+                        if (preg_match('/^(.+)\s+(\/dev\/\S+)\s+(\/.+)$/', $rest, $subMatches)) {
+                            $container = trim($subMatches[1]);
+                            $device = trim($subMatches[2]);
+                            $mountpoint = trim($subMatches[3]);
+                        } elseif (preg_match('/^(.+)\s+(\/.+)$/', $rest, $subMatches)) {
+                            $container = trim($subMatches[1]);
+                            $device = "";
+                            $mountpoint = trim($subMatches[2]);
+                        } else {
+                            $parts = preg_split('/\s+/', $rest);
+                            if (count($parts) >= 2) {
+                                $mountpoint = array_pop($parts);
+                                $device = array_pop($parts);
+                                $container = implode(" ", $parts);
+                            } else {
+                                $container = $rest;
+                                $device = "";
+                                $mountpoint = $rest;
+                            }
+                        }
+
                         $volumes[] = [
-                            "id" => $matches[1],
-                            "slot" => $matches[1],
-                            "container" => trim($matches[2]),
-                            "device" => trim($matches[3]),
-                            "mountpoint" => trim($matches[4])
-                        ];
-                    } else if (preg_match('/^(\d+):\s+(.+?)\s+(.+)$/', $trimmedLine, $matches)) {
-                        $volumes[] = [
-                            "id" => $matches[1],
-                            "slot" => $matches[1],
-                            "container" => trim($matches[2]),
-                            "device" => "",
-                            "mountpoint" => trim($matches[3])
+                            "id" => $slot,
+                            "slot" => $slot,
+                            "container" => $container,
+                            "device" => $device,
+                            "mountpoint" => $mountpoint
                         ];
                     }
                 }
@@ -1068,23 +1090,39 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                     if (empty($trimmedLine)) {
                         continue;
                     }
-                    if (preg_match('/^(\d+):\s+(.+?)\s+(\S+)\s+(.+)$/', $trimmedLine, $matches)) {
-                        $container = trim($matches[2]);
-                        $mountpoint = trim($matches[4]);
+                    if (preg_match('/^(\d+):\s+(.+)$/', $trimmedLine, $matches)) {
+                        $slot = $matches[1];
+                        $rest = trim($matches[2]);
+                        $container = "";
+                        $device = "";
+                        $mountpoint = "";
+
+                        if (preg_match('/^(.+)\s+(\/dev\/\S+)\s+(\/.+)$/', $rest, $subMatches)) {
+                            $container = trim($subMatches[1]);
+                            $device = trim($subMatches[2]);
+                            $mountpoint = trim($subMatches[3]);
+                        } elseif (preg_match('/^(.+)\s+(\/.+)$/', $rest, $subMatches)) {
+                            $container = trim($subMatches[1]);
+                            $device = "";
+                            $mountpoint = trim($subMatches[2]);
+                        } else {
+                            $parts = preg_split('/\s+/', $rest);
+                            if (count($parts) >= 2) {
+                                $mountpoint = array_pop($parts);
+                                $device = array_pop($parts);
+                                $container = implode(" ", $parts);
+                            } else {
+                                $container = $rest;
+                                $device = "";
+                                $mountpoint = $rest;
+                            }
+                        }
+
                         $volumes[] = [
                             "id" => $mountpoint,
-                            "name" => "Slot {$matches[1]}: {$container} on {$mountpoint}",
+                            "name" => $mountpoint,
                             "value" => $mountpoint,
-                            "label" => "Slot {$matches[1]}: {$container} on {$mountpoint}"
-                        ];
-                    } else if (preg_match('/^(\d+):\s+(.+?)\s+(.+)$/', $trimmedLine, $matches)) {
-                        $container = trim($matches[2]);
-                        $mountpoint = trim($matches[3]);
-                        $volumes[] = [
-                            "id" => $mountpoint,
-                            "name" => "Slot {$matches[1]}: {$container} on {$mountpoint}",
-                            "value" => $mountpoint,
-                            "label" => "Slot {$matches[1]}: {$container} on {$mountpoint}"
+                            "label" => $mountpoint
                         ];
                     }
                 }

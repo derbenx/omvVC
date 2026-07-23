@@ -12,33 +12,10 @@ data:
         method: setProfile
         successUrl: "/services/veracrypt/profiles"
     fields:
-      - type: hidden
-        name: installed_str
-        value: "no"
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
-        value: _("🟢 VeraCrypt installed")
         readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "yes"
-      - type: textInput
-        name: vc_not_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🔴 Please Install VeraCrypt!")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
       - type: select
         name: saved_profile
         label: _("Select Saved Profile")
@@ -48,9 +25,10 @@ data:
           proxy:
             service: VeraCrypt
             method: getProfileList
-      - type: hidden
+      - type: textInput
         name: uuid
         value: "{{ newconfobjuuid }}"
+        class: "d-none"
       - type: textInput
         name: name
         label: _("Profile Name")
