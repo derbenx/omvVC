@@ -336,7 +336,7 @@ data:
                 name: password
                 label: _("VeraCrypt Password")
                 value: ""
-                hint: _("Optional: Leave blank to use the saved password.")
+                hint: _("Optional - Leave blank to use the saved password.")
             buttons:
               submit:
                 text: _("Mount")
