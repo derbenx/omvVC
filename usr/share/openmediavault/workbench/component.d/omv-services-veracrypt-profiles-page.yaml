@@ -8,11 +8,13 @@ data:
       service: VeraCrypt
       get:
         method: getProfileDetails
+      post:
+        method: setProfile
+        successUrl: "/services/veracrypt/profiles"
     fields:
-      - type: textInput
+      - type: hidden
         name: installed_str
         value: "no"
-        class: "d-none"
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
@@ -44,11 +46,9 @@ data:
           proxy:
             service: VeraCrypt
             method: getProfileList
-      - type: textInput
+      - type: hidden
         name: uuid
         value: "{{ newconfobjuuid }}"
-        readonly: true
-        class: "d-none"
       - type: textInput
         name: name
         label: _("Profile Name")
@@ -102,25 +102,6 @@ data:
         execute:
           type: url
           url: "/services/veracrypt/profiles/new"
-      - id: save
-        text: _("Save")
-        icon: "mdi:content-save"
-        execute:
-          type: request
-          request:
-            service: VeraCrypt
-            method: setProfile
-            params:
-              uuid: "{{ uuid }}"
-              name: "{{ name }}"
-              type: "{{ type }}"
-              shared_folder_uuid: "{{ shared_folder_uuid }}"
-              container_location: "{{ container_location }}"
-              endpoint_folder: "{{ endpoint_folder }}"
-              password: "{{ password }}"
-              permissions: "{{ permissions }}"
-              save_password: true
-          successUrl: "/services/veracrypt/profiles"
       - id: delete
         text: _("Delete")
         icon: "mdi:delete"

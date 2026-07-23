@@ -2,52 +2,62 @@ version: "1.0"
 type: component
 data:
   name: omv-services-veracrypt-mounts-page
-  type: datatablePage
+  type: formPage
   config:
-    autoReload: true
-    stateId: "veracrypt-mounts-grid"
-    store:
-      proxy:
-        service: VeraCrypt
-        method: getMountedVolumes
-    columns:
-      - name: _("Slot")
-        prop: "slot"
-        flexGrow: 1
-        sortable: true
-      - name: _("Container/Device Path")
-        prop: "container"
-        flexGrow: 3
-        sortable: true
-      - name: _("Virtual Device")
-        prop: "device"
-        flexGrow: 1
-        sortable: true
-      - name: _("Mountpoint")
-        prop: "mountpoint"
-        flexGrow: 3
-        sortable: true
-    actions:
-      - id: unmount_selected
+    request:
+      service: VeraCrypt
+      get:
+        method: getStatus
+    fields:
+      - type: hidden
+        name: installed_str
+        value: "no"
+      - type: textInput
+        name: vc_installed_status
+        label: _("VeraCrypt Status")
+        value: _("🟢 VeraCrypt installed")
+        readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0: "prop:installed_str"
+              arg1: "yes"
+      - type: textInput
+        name: vc_not_installed_status
+        label: _("VeraCrypt Status")
+        value: _("🔴 Please Install VeraCrypt!")
+        readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0: "prop:installed_str"
+              arg1: "no"
+      - type: checklist
+        name: mounted_volumes
+        label: _("Select Active Mounts to Dismount")
+        value: []
+        store:
+          proxy:
+            service: VeraCrypt
+            method: getMountedVolumesList
+    buttons:
+      - id: unmount
+        text: _("Unmount Selected")
         icon: "mdi:stop-circle-outline"
-        text: _("Dismount Selected")
-        tooltip: _("Unmount the selected VeraCrypt volume")
-        enabledBind: "hasSelection"
         execute:
           type: taskDialog
           taskDialog:
             config:
-              title: _("Unmounting VeraCrypt Encrypted Volume ...")
+              title: _("Unmounting Selected VeraCrypt Volumes ...")
               startOnInit: true
               request:
                 service: VeraCrypt
-                method: unmount
-                params:
-                  endpoint_folder: "{{ selection[0].mountpoint }}"
+                method: unmountMultiple
       - id: unmount_all
+        text: _("Unmount All")
         icon: "mdi:stop-circle-multiple-outline"
-        text: _("Dismount All")
-        tooltip: _("Unmount all mounted VeraCrypt volumes")
         execute:
           type: taskDialog
           taskDialog:

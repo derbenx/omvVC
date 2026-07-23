@@ -253,10 +253,33 @@
 	},
 	{
 		"type": "rpc",
+		"id": "rpc.veracrypt.getMountedVolumesList",
+		"params": {
+			"type": "object",
+			"properties": {}
+		}
+	},
+	{
+		"type": "rpc",
 		"id": "rpc.veracrypt.unmountAll",
 		"params": {
 			"type": "object",
 			"properties": {}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.unmountMultiple",
+		"params": {
+			"type": "object",
+			"properties": {
+				"mounted_volumes": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
 		}
 	}
 ]

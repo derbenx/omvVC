@@ -9,10 +9,9 @@ data:
       get:
         method: getStatus
     fields:
-      - type: textInput
+      - type: hidden
         name: installed_str
         value: "no"
-        class: "d-none"
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")

@@ -44,7 +44,9 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("removeVeraCrypt");
         $this->registerMethod("getStatus");
         $this->registerMethod("getMountedVolumes");
+        $this->registerMethod("getMountedVolumesList");
         $this->registerMethod("unmountAll");
+        $this->registerMethod("unmountMultiple");
     }
 
     private function generateUuid4()
@@ -1050,6 +1052,53 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         return $volumes;
     }
 
+    public function getMountedVolumesList($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.veracrypt.getMountedVolumesList");
+
+        $volumes = [];
+        if (!$this->isVeraCryptInstalled()) {
+            return $volumes;
+        }
+
+        try {
+            $cmd = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
+            $cmd->execute($output, $exitStatus);
+            if ($exitStatus === 0) {
+                foreach ($output as $line) {
+                    $trimmedLine = trim($line);
+                    if (empty($trimmedLine)) {
+                        continue;
+                    }
+                    if (preg_match('/^(\d+):\s+(.+?)\s+(\S+)\s+(.+)$/', $trimmedLine, $matches)) {
+                        $container = trim($matches[2]);
+                        $mountpoint = trim($matches[4]);
+                        $volumes[] = [
+                            "id" => $mountpoint,
+                            "name" => "Slot {$matches[1]}: {$container} on {$mountpoint}",
+                            "value" => $mountpoint,
+                            "label" => "Slot {$matches[1]}: {$container} on {$mountpoint}"
+                        ];
+                    } else if (preg_match('/^(\d+):\s+(.+?)\s+(.+)$/', $trimmedLine, $matches)) {
+                        $container = trim($matches[2]);
+                        $mountpoint = trim($matches[3]);
+                        $volumes[] = [
+                            "id" => $mountpoint,
+                            "name" => "Slot {$matches[1]}: {$container} on {$mountpoint}",
+                            "value" => $mountpoint,
+                            "label" => "Slot {$matches[1]}: {$container} on {$mountpoint}"
+                        ];
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
+
+        return $volumes;
+    }
+
     public function unmountAll($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
@@ -1063,6 +1112,29 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $exitStatus = $this->exec($cmdLine, $output, $bgOutputFilename);
             if ($exitStatus !== 0) {
                 throw new \OMV\ExecException($cmdLine, $output);
+            }
+            return $output;
+        });
+    }
+
+    public function unmountMultiple($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, "rpc.veracrypt.unmountMultiple");
+        $this->checkVeraCryptInstalled();
+
+        $mountpoints = isset($params['mounted_volumes']) ? $params['mounted_volumes'] : [];
+
+        return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) use ($mountpoints) {
+            $script = "/usr/sbin/vcu.sh";
+            $output = [];
+            foreach ($mountpoints as $mp) {
+                if (empty($mp)) {
+                    continue;
+                }
+                $cmd = new \OMV\System\Process($script, [$mp]);
+                $cmd->execute($cmdOutput, $exitStatus);
+                $output = array_merge($output, $cmdOutput);
             }
             return $output;
         });
