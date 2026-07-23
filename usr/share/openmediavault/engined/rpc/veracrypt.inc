@@ -207,6 +207,21 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $resultList[] = $profile;
         }
 
+        // Prepend virtual status row
+        $statusRow = [
+            "uuid" => "00000000-0000-0000-0000-000000000000",
+            "name" => $installed ? "🟢 VeraCrypt is installed" : "🔴 VeraCrypt is NOT installed!",
+            "type" => $installed ? "Installed" : "NOT Installed",
+            "container_location" => "Please check the Installer tab to install or purge.",
+            "filename" => "",
+            "endpoint_folder" => "",
+            "permissions" => "",
+            "remember_configs" => false,
+            "mounted" => $installed,
+            "installed" => $installed
+        ];
+        array_unshift($resultList, $statusRow);
+
         return $resultList;
     }
 
@@ -214,6 +229,11 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.setProfile");
+
+        $uuid = $params['uuid'];
+        if ($uuid === "00000000-0000-0000-0000-000000000000") {
+            throw new \OMV\Exception("This is a system status indicator row and cannot be edited.");
+        }
 
         $db = \OMV\Config\Database::getInstance();
         $object = $this->getConfigObject();
@@ -229,7 +249,6 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $params['password'] = "";
         }
 
-        $uuid = $params['uuid'];
         $found = false;
         $oldPassword = "";
 
@@ -278,6 +297,11 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.deleteProfile");
 
+        $uuid = $params['uuid'];
+        if ($uuid === "00000000-0000-0000-0000-000000000000") {
+            throw new \OMV\Exception("This is a system status indicator row and cannot be deleted.");
+        }
+
         $db = \OMV\Config\Database::getInstance();
         $object = $this->getConfigObject();
         $profilesData = $object->get("profiles") ? $object->get("profiles") : [];
@@ -287,7 +311,6 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $profilesList = $profilesData['profile'];
         }
 
-        $uuid = $params['uuid'];
         $newProfilesList = [];
 
         foreach ($profilesList as $p) {
@@ -625,7 +648,10 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         return [
             "installed" => $installed,
             "mounted" => $mounted,
-            "active_mounts" => $activeMounts
+            "active_mounts" => $activeMounts,
+            "vc_installed_status" => "🟢 VeraCrypt installed",
+            "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
+            "vc_bottom_notice" => "🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this."
         ];
     }
 }

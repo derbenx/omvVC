@@ -9,10 +9,13 @@ data:
       get:
         method: getStatus
     fields:
+      - type: hidden
+        name: installed
+        value: false
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
-        value: _("VeraCrypt installed")
+        value: _("🟢 VeraCrypt installed")
         readonly: true
         modifiers:
           - type: visible
@@ -24,7 +27,7 @@ data:
       - type: textInput
         name: vc_not_installed_status
         label: _("VeraCrypt Status")
-        value: _("Please Install VeraCrypt!")
+        value: _("🔴 Please Install VeraCrypt!")
         readonly: true
         modifiers:
           - type: visible
@@ -35,11 +38,11 @@ data:
               arg1: false
       - type: textInput
         name: vc_missing_validation_trigger
-        label: _("Required Action")
+        label: _("🔴 Required Action")
         value: ""
         required: true
         readonly: true
-        hint: _("You must install VeraCrypt from the 'VeraCrypt Installer' tab to enable and unlock this form.")
+        hint: _("🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this.")
         modifiers:
           - type: visible
             constraint:
@@ -53,12 +56,12 @@ data:
         value: ""
         hint: _("Choose an existing Shared Folder to use as the base path.")
         modifiers:
-          - type: visible
+          - type: readonly
             constraint:
               operator: eq
               arg0:
                 prop: installed
-              arg1: true
+              arg1: false
       - type: textInput
         name: path
         label: _("Target Container File / Partition Device Path")
@@ -66,12 +69,12 @@ data:
         required: true
         hint: _("Examples include secure.vc (when a shared folder is selected above) or an absolute path such as /dev/sdc1.")
         modifiers:
-          - type: visible
+          - type: readonly
             constraint:
               operator: eq
               arg0:
                 prop: installed
-              arg1: true
+              arg1: false
       - type: textInput
         name: size
         label: _("Volume Size")
@@ -79,24 +82,24 @@ data:
         required: true
         hint: _("Examples include 500M for 500 Megabytes, 10G for 10 Gigabytes, or max to use the full drive partition.")
         modifiers:
-          - type: visible
+          - type: readonly
             constraint:
               operator: eq
               arg0:
                 prop: installed
-              arg1: true
+              arg1: false
       - type: passwordInput
         name: password
         label: _("VeraCrypt Passphrase")
         value: ""
         required: true
         modifiers:
-          - type: visible
+          - type: readonly
             constraint:
               operator: eq
               arg0:
                 prop: installed
-              arg1: true
+              arg1: false
       - type: select
         name: filesystem
         label: _("Filesystem Format")
@@ -108,12 +111,12 @@ data:
             - ["ext4", _("ext4 (Linux Only, Native Performance)")]
             - ["NTFS", _("NTFS (Windows & Linux compatibility)")]
         modifiers:
-          - type: visible
+          - type: readonly
             constraint:
               operator: eq
               arg0:
                 prop: installed
-              arg1: true
+              arg1: false
       - type: select
         name: encryption
         label: _("Encryption Algorithm")
@@ -124,12 +127,12 @@ data:
             - ["Serpent", _("Serpent")]
             - ["Twofish", _("Twofish")]
         modifiers:
-          - type: visible
+          - type: readonly
             constraint:
               operator: eq
               arg0:
                 prop: installed
-              arg1: true
+              arg1: false
       - type: select
         name: hash
         label: _("Hash Algorithm")
@@ -139,24 +142,29 @@ data:
             - ["sha-512", _("SHA-512")]
             - ["whirlpool", _("Whirlpool")]
         modifiers:
-          - type: visible
+          - type: readonly
             constraint:
               operator: eq
               arg0:
                 prop: installed
-              arg1: true
-    buttons:
-      - id: create
-        text: _("Create & Format Volume")
-        icon: "mdi:plus-circle-outline"
-        enabledBind: "installed"
+              arg1: false
+      - type: textInput
+        name: vc_bottom_notice
+        label: _("VeraCrypt Status Notice")
+        value: _("🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this.")
+        readonly: true
         modifiers:
           - type: visible
             constraint:
               operator: eq
               arg0:
                 prop: installed
-              arg1: true
+              arg1: false
+    buttons:
+      - id: create
+        text: _("Create & Format Volume")
+        icon: "mdi:plus-circle-outline"
+        enabledBind: "installed"
         execute:
           type: taskDialog
           taskDialog:
