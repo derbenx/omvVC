@@ -1,0 +1,72 @@
+{
+	"type": "config",
+	"id": "conf.service.veracrypt",
+	"title": "VeraCrypt",
+	"queryinfo": {
+		"xpath": "/config/services/veracrypt",
+		"iterable": false
+	},
+	"properties": {
+		"enable": {
+			"type": "boolean",
+			"default": false
+		},
+		"profiles": {
+			"type": "object",
+			"properties": {
+				"profile": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"uuid": {
+								"type": "string",
+								"format": "uuidv4"
+							},
+							"shared_folder_uuid": {
+								"type": "string",
+								"default": ""
+							},
+							"name": {
+								"type": "string"
+							},
+							"type": {
+								"type": "string",
+								"enum": ["file", "drive"],
+								"default": "file"
+							},
+							"container_location": {
+								"type": "string",
+								"default": ""
+							},
+							"endpoint_folder": {
+								"type": "string",
+								"default": ""
+							},
+							"password": {
+								"type": "string",
+								"default": ""
+							},
+							"filename": {
+								"type": "string",
+								"default": ""
+							},
+							"permissions": {
+								"type": "string",
+								"default": "777"
+							},
+							"save_password": {
+								"type": "boolean",
+								"default": false
+							},
+							"remember_configs": {
+								"type": "boolean",
+								"default": true
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

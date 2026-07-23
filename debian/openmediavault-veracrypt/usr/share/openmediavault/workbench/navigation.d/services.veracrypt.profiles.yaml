@@ -1,0 +1,8 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "services.veracrypt.profiles"
+  text: _("Profiles")
+  position: 10
+  icon: "mdi:folder-lock"
+  url: "/services/veracrypt/profiles"

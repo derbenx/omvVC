@@ -1,0 +1,8 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "services.veracrypt.mounts"
+  text: _("Active Mounts")
+  position: 15
+  icon: "mdi:folder-multiple-image"
+  url: "/services/veracrypt/mounts"

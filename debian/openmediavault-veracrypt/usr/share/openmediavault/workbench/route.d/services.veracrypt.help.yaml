@@ -1,0 +1,6 @@
+version: "1.0"
+type: route
+data:
+  url: "/services/veracrypt/help"
+  title: _("Help")
+  component: omv-services-veracrypt-help-page

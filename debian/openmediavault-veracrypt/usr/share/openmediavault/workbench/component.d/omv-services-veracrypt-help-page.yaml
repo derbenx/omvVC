@@ -1,0 +1,49 @@
+version: "1.0"
+type: component
+data:
+  name: omv-services-veracrypt-help-page
+  type: formPage
+  config:
+    request:
+      service: VeraCrypt
+      get:
+        method: getStatus
+    fields:
+      - type: textarea
+        name: help_info
+        label: _("VeraCrypt Plugin Help & Setup Instructions")
+        value: |
+          VeraCrypt OpenMediaVault 8 Plugin Guide
+          ======================================
+
+          This plugin enables you to manage and mount encrypted VeraCrypt file containers or physical partition drives directly from the WebUI.
+
+          1. Solving the '500 - Internal Server Error' (XPath)
+          --------------------------------------------------
+          If you encounter a 500 error stating "Failed to execute XPath query '/config/services/veracrypt'", this means OMV's XML database has not been initialized with the default VeraCrypt configuration.
+          To fix this instantly, log in to your OMV server via SSH as root and run:
+
+            sudo omv-confdbadm create "conf.service.veracrypt"
+
+          This command directly initializes the configuration nodes without triggering any unrelated system network tracebacks.
+
+
+          2. VeraCrypt Header Installation (Headless)
+          -----------------------------------------
+          OMV operates as a headless NAS server, so we only require the console-only headless version of VeraCrypt (no desktop GUI dependencies!).
+
+          - Automatic Installation: Click the 'Install VeraCrypt' button inside the 'VeraCrypt Installer' tab.
+          - Manual Installation: If your repository does not have the packages, you can manually download and install the console package for your debian version (e.g., Bookworm/Trixie):
+
+            wget https://launchpad.net/veracrypt/trunk/1.26.24/+download/veracrypt-console-1.26.24-Ubuntu-24.04-amd64.deb
+            sudo dpkg -i veracrypt-console-1.26.24-Ubuntu-24.04-amd64.deb
+            sudo apt-get install -f -y
+
+
+          3. Mounting Best Practices
+          -------------------------
+          - End Point Folder (Mountpoint): This works best if the end point folder is on a drive already shared in '/srv/dev-disk-by-uuid-##/folder'.
+          - Permissions: Specify standard octal formats (e.g. 777, 770, or 755). The plugin automatically converts these standard digits into safe secure umask options on mount.
+          - Dismount folder cleanup: Upon unmounting, the plugin cleanly deletes the dynamically created mountpoint directory to keep the filesystem pristine.
+        readonly: true
+        rows: 25

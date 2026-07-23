@@ -1,0 +1,8 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "services.veracrypt.installer"
+  text: _("VeraCrypt Installer")
+  position: 30
+  icon: "mdi:package-variant-plus"
+  url: "/services/veracrypt/installer"

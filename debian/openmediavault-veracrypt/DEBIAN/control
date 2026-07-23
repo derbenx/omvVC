@@ -1,0 +1,15 @@
+Package: openmediavault-veracrypt
+Version: 1.0.0
+Architecture: all
+Maintainer: OMV Plugin Developer <plugins@omv-extras.org>
+Installed-Size: 111
+Depends: openmediavault (>= 8.0)
+Section: net
+Priority: optional
+Homepage: https://github.com/openmediavault/openmediavault
+Description: VeraCrypt mounting and management plugin for OpenMediaVault
+ This plugin enables OpenMediaVault users to mount and unmount VeraCrypt
+ file containers or partition drives directly from the WebUI.
+ It includes configuration profiles, a Drive vs File mount toggle,
+ dynamic installation/removal of VeraCrypt, and helpful guidance.
+Plugin-Section: utilities

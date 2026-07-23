@@ -1,0 +1,8 @@
+version: "1.0"
+type: navigation-item
+data:
+  path: "services.veracrypt.create"
+  text: _("Create Volume")
+  position: 20
+  icon: "mdi:plus-circle-outline"
+  url: "/services/veracrypt/create"
