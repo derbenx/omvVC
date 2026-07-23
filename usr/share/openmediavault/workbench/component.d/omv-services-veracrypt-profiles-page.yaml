@@ -256,7 +256,7 @@ data:
       - type: iconButton
         icon: mdi:play-circle-outline
         tooltip: _("Mount Selected Profile")
-        enabledBind: "oneSelected && _selected[0].is_profile && _selected[0].installed"
+        enabledBind: "oneSelected && _selected[0].mount_enabled"
         execute:
           type: request
           request:
@@ -267,7 +267,7 @@ data:
       - type: iconButton
         icon: mdi:stop-circle-outline
         tooltip: _("Unmount Selected Profile")
-        enabledBind: "oneSelected && _selected[0].is_profile && _selected[0].installed"
+        enabledBind: "oneSelected && _selected[0].unmount_enabled"
         execute:
           type: request
           request:

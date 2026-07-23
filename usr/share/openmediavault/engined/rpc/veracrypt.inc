@@ -131,6 +131,19 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             }
         }
         try {
+            $proc = new \OMV\System\Process("dpkg", ["-l"]);
+            $proc->execute($output, $exitStatus);
+            if ($exitStatus === 0) {
+                foreach ($output as $line) {
+                    if (preg_match('/^\s*ii\s+(veracrypt|veracrypt-console)\s/i', $line)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
+        try {
             $proc = new \OMV\System\Process("veracrypt", ["--version"]);
             $proc->execute($output, $exitStatus);
             if ($exitStatus === 0 || $exitStatus === 1) {
@@ -233,6 +246,8 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $profile['installed'] = $installed;
             $profile['is_profile'] = true;
             $profile['is_virtual'] = false;
+            $profile['mount_enabled'] = $installed;
+            $profile['unmount_enabled'] = $installed;
             $resultList[] = $profile;
         }
 
@@ -249,7 +264,9 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             "mounted" => $installed,
             "installed" => $installed,
             "is_profile" => false,
-            "is_virtual" => true
+            "is_virtual" => true,
+            "mount_enabled" => false,
+            "unmount_enabled" => false
         ];
         array_unshift($resultList, $statusRow);
 
@@ -409,7 +426,12 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $cmd = new \OMV\System\Process("veracrypt", $args);
             $cmd->setRedirect2to1();
             $cmdLine = $cmd->getCommandLine();
-            if (0 !== $this->exec($cmdLine, $output, $bgOutputFilename)) {
+            $exitStatus = $this->exec($cmdLine, $output, $bgOutputFilename);
+            if (0 !== $exitStatus) {
+                // If container file exists and is greater than 0 bytes, consider successful creation
+                if (file_exists($path) && filesize($path) > 0) {
+                    return $output;
+                }
                 throw new \OMV\ExecException($cmdLine, $output);
             }
             return $output;
