@@ -725,6 +725,16 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.veracrypt.getProfileDetails");
         $this->logDebug("getProfileDetails() called with params: " . json_encode($params));
 
+        // Trigger the standalone diagnostic check script to update /tmp/veracrypt_debug.log
+        try {
+            if (file_exists("/usr/sbin/vcdiag.sh")) {
+                $diagProc = new \OMV\System\Process("/usr/sbin/vcdiag.sh");
+                $diagProc->execute();
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
+
         $installed = $this->isVeraCryptInstalled();
         $uuid = isset($params['uuid']) ? $params['uuid'] : '';
 
@@ -893,6 +903,16 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.getStatus");
         $this->logDebug("getStatus() called with params: " . json_encode($params));
+
+        // Trigger the standalone diagnostic check script to update /tmp/veracrypt_debug.log
+        try {
+            if (file_exists("/usr/sbin/vcdiag.sh")) {
+                $diagProc = new \OMV\System\Process("/usr/sbin/vcdiag.sh");
+                $diagProc->execute();
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
 
         // 1. Check if VeraCrypt is installed
         $installed = $this->isVeraCryptInstalled();
