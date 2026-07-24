@@ -26,7 +26,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     private function logDebug($message)
     {
         try {
-            $logFile = "/tmp/veracrypt_debug.log";
+            $logFile = "/var/log/openmediavault/veracrypt_debug.log";
             $timestamp = date("Y-m-d H:i:s");
             $formattedMessage = "[{$timestamp}] {$message}\n";
             file_put_contents($logFile, $formattedMessage, FILE_APPEND);
