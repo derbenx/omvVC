@@ -8,7 +8,7 @@ set -e
 case "$1" in
     configure)
         # Ensure our wrapper scripts are executable if they exist
-        for script in /usr/sbin/vcm.sh /usr/sbin/vcd.sh /usr/sbin/vcu.sh /usr/sbin/vci.sh; do
+        for script in /usr/sbin/vcm.sh /usr/sbin/vcd.sh /usr/sbin/vcu.sh /usr/sbin/vci.sh /usr/sbin/vcdiag.sh; do
             if [ -f "$script" ]; then
                 chmod +x "$script"
             fi
