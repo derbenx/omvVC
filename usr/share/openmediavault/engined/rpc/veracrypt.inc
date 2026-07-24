@@ -23,6 +23,19 @@ require_once("openmediavault/functions.inc");
 
 class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 {
+    private function logDebug($message)
+    {
+        try {
+            $logFile = "/tmp/veracrypt_debug.log";
+            $timestamp = date("Y-m-d H:i:s");
+            $formattedMessage = "[{$timestamp}] {$message}\n";
+            file_put_contents($logFile, $formattedMessage, FILE_APPEND);
+            @chmod($logFile, 0666);
+        } catch (\Exception $e) {
+            // ignore
+        }
+    }
+
     public function getName()
     {
         return "VeraCrypt";
@@ -232,6 +245,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     public function getProfileList($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->logDebug("getProfileList() called with params: " . json_encode($params));
 
         $profilesList = [];
         try {
@@ -344,6 +358,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         ];
         array_unshift($resultList, $statusRow);
 
+        $this->logDebug("getProfileList() returning " . count($resultList) . " profiles.");
         return $resultList;
     }
 
@@ -351,6 +366,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.setProfile");
+        $this->logDebug("setProfile() called with params: " . json_encode($params));
 
         $uuid = $params['uuid'];
         if ($uuid === "00000000-0000-0000-0000-000000000000") {
@@ -427,6 +443,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $object->set("profiles", $profilesData);
         $db->set($object);
 
+        $this->logDebug("setProfile() successfully saved and returning: " . json_encode($params));
         return $params;
     }
 
@@ -708,6 +725,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.getProfileDetails");
+        $this->logDebug("getProfileDetails() called with params: " . json_encode($params));
 
         $installed = $this->isVeraCryptInstalled();
         $uuid = isset($params['uuid']) ? $params['uuid'] : '';
@@ -756,6 +774,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             }
         }
 
+        $this->logDebug("getProfileDetails() returning profile: " . json_encode($profile));
         return $profile;
     }
 
@@ -873,6 +892,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.getStatus");
+        $this->logDebug("getStatus() called with params: " . json_encode($params));
 
         // 1. Check if VeraCrypt is installed
         $installed = $this->isVeraCryptInstalled();
@@ -1005,7 +1025,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             }
         }
 
-        return [
+        $response = [
             "installed" => $installed,
             "installed_str" => $installed ? "yes" : "no",
             "mounted" => $mounted,
@@ -1014,6 +1034,8 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
             "vc_bottom_notice" => "🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this."
         ];
+        $this->logDebug("getStatus() returning: " . json_encode($response));
+        return $response;
     }
 
     public function getMountedVolumes($params, $context)
