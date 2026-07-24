@@ -17,6 +17,12 @@ sudo apt-get install -f -y
 
 echo ""
 echo "=========================================================="
+echo "🔨 Compiling OpenMediaVault Web UI workbench cache..."
+echo "=========================================================="
+sudo omv-mkworkbench all || true
+
+echo ""
+echo "=========================================================="
 echo "🔄 Stopping openmediavault-engined service..."
 echo "=========================================================="
 sudo systemctl stop openmediavault-engined.service || true
