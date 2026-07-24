@@ -7,12 +7,31 @@ MOUNTPOINT="$2"
 PASSWORD="$3"
 PERM="$4"
 
+log_debug() {
+    local MSG="$1"
+    local TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+    echo "[${TIMESTAMP}] [vcm.sh] ${MSG}" >> /var/log/openmediavault/veracrypt_debug.log 2>/dev/null || true
+    echo "[${TIMESTAMP}] [vcm.sh] ${MSG}" >> /tmp/veracrypt_debug.log 2>/dev/null || true
+}
+
+log_debug "vcm.sh helper mount file script started."
+log_debug "Arguments: CONTAINER='${CONTAINER}', MOUNTPOINT='${MOUNTPOINT}', PERM='${PERM}'"
+
 if [ -z "$CONTAINER" ] || [ -z "$MOUNTPOINT" ]; then
+    log_debug "Error: Missing required CONTAINER or MOUNTPOINT parameters."
     echo "Usage: $0 <container-path> <mountpoint-path> [password] [permissions]"
     exit 1
 fi
 
+# Check if veracrypt is installed
+if ! command -v veracrypt >/dev/null 2>&1; then
+    log_debug "Error: veracrypt binary is NOT installed on the host system!"
+else
+    log_debug "VeraCrypt is installed. Executing mount sequence..."
+fi
+
 # 1. Create the mount folder
+log_debug "Creating mount point directory: ${MOUNTPOINT}"
 mkdir -p "$MOUNTPOINT"
 
 # 2. Convert standard permissions (e.g. 770) to umask (e.g. 007)
@@ -55,7 +74,9 @@ else
 fi
 
 if [ "$MOUNT_OK" = "true" ]; then
+    log_debug "Mount command succeeded successfully!"
     exit 0
 else
+    log_debug "Error: Mount command failed completely."
     exit 1
 fi

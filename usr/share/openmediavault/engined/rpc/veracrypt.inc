@@ -26,11 +26,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     private function logDebug($message)
     {
         try {
-            $logFile = "/var/log/openmediavault/veracrypt_debug.log";
-            $timestamp = date("Y-m-d H:i:s");
-            $formattedMessage = "[{$timestamp}] {$message}\n";
-            file_put_contents($logFile, $formattedMessage, FILE_APPEND);
-            @chmod($logFile, 0666);
+            error_log("VERACRYPT_DEBUG: " . $message);
         } catch (\Exception $e) {
             // ignore
         }
@@ -564,6 +560,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.mount");
         $this->checkVeraCryptInstalled();
+        $this->logDebug("mount() called with params: " . json_encode($params));
 
         $uuid = $params['uuid'];
         $targetProfile = null;
@@ -663,6 +660,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.mountManual");
         $this->checkVeraCryptInstalled();
+        $this->logDebug("mountManual() called with params: " . json_encode($params));
 
         $type = isset($params['type']) ? $params['type'] : 'file';
         $containerLoc = isset($params['container_location']) ? $params['container_location'] : '';
@@ -783,6 +781,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
         $this->validateMethodParams($params, "rpc.veracrypt.unmount");
         $this->checkVeraCryptInstalled();
+        $this->logDebug("unmount() called with params: " . json_encode($params));
 
         $uuid = isset($params['uuid']) ? $params['uuid'] : '';
         $endpoint = isset($params['endpoint_folder']) ? $params['endpoint_folder'] : '';
@@ -855,6 +854,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     public function installVeraCrypt($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->logDebug("installVeraCrypt() called");
 
         return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) {
             // Run helper installer script

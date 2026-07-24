@@ -3,8 +3,18 @@
 
 set -e
 
+log_debug() {
+    local MSG="$1"
+    local TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+    echo "[${TIMESTAMP}] [vci.sh] ${MSG}" >> /var/log/openmediavault/veracrypt_debug.log 2>/dev/null || true
+    echo "[${TIMESTAMP}] [vci.sh] ${MSG}" >> /tmp/veracrypt_debug.log 2>/dev/null || true
+}
+
+log_debug "vci.sh helper installer script started."
+
 # Detect architecture
 ARCH=$(dpkg --print-architecture)
+log_debug "Detected architecture: ${ARCH}"
 
 # Detect OS and release codename
 if [ -f /etc/os-release ]; then
@@ -80,17 +90,30 @@ for VC_VER in $VC_VERSIONS; do
 done
 
 if [ "$DOWNLOAD_SUCCESS" = "false" ]; then
+    log_debug "Error: Failed to download any compatible VeraCrypt console package from Launchpad."
     echo "Error: Failed to download any compatible VeraCrypt console package from Launchpad."
     rm -rf "$TMP_DIR"
     exit 1
 fi
 
-echo "Installing VeraCrypt console package..."
+log_debug "Installing VeraCrypt console package..."
 export DEBIAN_FRONTEND=noninteractive
-dpkg -i "$TMP_DIR/veracrypt.deb" || apt-get install -f -y
+if dpkg -i "$TMP_DIR/veracrypt.deb" || apt-get install -f -y; then
+    log_debug "dpkg / apt-get installation command completed."
+else
+    log_debug "dpkg / apt-get installation command encountered errors."
+fi
 
 # Clean up
 rm -rf "$TMP_DIR"
+
+log_debug "Verifying installation..."
+if command -v veracrypt >/dev/null 2>&1; then
+    VER=$(veracrypt -t --version 2>&1)
+    log_debug "VeraCrypt is installed! Version: ${VER}"
+else
+    log_debug "VeraCrypt binary not found after installation attempt."
+fi
 
 echo "VeraCrypt console package installation completed successfully."
 exit 0
