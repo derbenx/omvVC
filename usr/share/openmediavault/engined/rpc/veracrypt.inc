@@ -56,6 +56,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("getMountedVolumesList");
         $this->registerMethod("unmountAll");
         $this->registerMethod("unmountMultiple");
+        $this->registerMethod("checkInstallation");
     }
 
     private function generateUuid4()
@@ -231,9 +232,30 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         return false;
     }
 
+    public function checkInstallation($params, $context)
+    {
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        $this->logDebug("checkInstallation() called");
+
+        $installed = $this->isVeraCryptInstalled();
+
+        $db = \OMV\Config\Database::getInstance();
+        $object = $this->getConfigObject();
+        $assoc = $object->getAssoc();
+        $assoc['installed'] = $installed;
+        $object->setAssoc($assoc);
+        $db->set($object);
+
+        $this->logDebug("checkInstallation() updated 'installed' in database to: " . ($installed ? "true" : "false"));
+        return $assoc;
+    }
+
     private function checkVeraCryptInstalled()
     {
-        if (!$this->isVeraCryptInstalled()) {
+        $object = $this->getConfigObject();
+        $assoc = $object->getAssoc();
+        $installed = isset($assoc['installed']) ? (bool)$assoc['installed'] : false;
+        if (!$installed) {
             throw new \OMV\Exception("VeraCrypt is not installed on this system. Please go to the 'VeraCrypt Installer' tab to install it first.");
         }
     }
@@ -876,6 +898,19 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             if (0 !== $this->exec($cmdLine, $output, $bgOutputFilename)) {
                 throw new \OMV\ExecException($cmdLine, $output);
             }
+
+            // Mark as installed in the database!
+            try {
+                $db = \OMV\Config\Database::getInstance();
+                $object = $db->get("conf.service.veracrypt");
+                $assoc = $object->getAssoc();
+                $assoc['installed'] = true;
+                $object->setAssoc($assoc);
+                $db->set($object);
+            } catch (\Exception $e) {
+                // ignore
+            }
+
             return $output;
         });
     }
@@ -894,6 +929,19 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             if (0 !== $this->exec($cmdLine, $output, $bgOutputFilename)) {
                 throw new \OMV\ExecException($cmdLine, $output);
             }
+
+            // Mark as uninstalled in the database!
+            try {
+                $db = \OMV\Config\Database::getInstance();
+                $object = $db->get("conf.service.veracrypt");
+                $assoc = $object->getAssoc();
+                $assoc['installed'] = false;
+                $object->setAssoc($assoc);
+                $db->set($object);
+            } catch (\Exception $e) {
+                // ignore
+            }
+
             return $output;
         });
     }
@@ -1064,7 +1112,10 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.veracrypt.getMountedVolumes");
 
         $volumes = [];
-        if (!$this->isVeraCryptInstalled()) {
+        $object = $this->getConfigObject();
+        $assoc = $object->getAssoc();
+        $installed = isset($assoc['installed']) ? (bool)$assoc['installed'] : false;
+        if (!$installed) {
             return $volumes;
         }
 
@@ -1128,7 +1179,10 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.veracrypt.getMountedVolumesList");
 
         $volumes = [];
-        if (!$this->isVeraCryptInstalled()) {
+        $configObj = $this->getConfigObject();
+        $assoc = $configObj->getAssoc();
+        $installed = isset($assoc['installed']) ? (bool)$assoc['installed'] : false;
+        if (!$installed) {
             return $volumes;
         }
 

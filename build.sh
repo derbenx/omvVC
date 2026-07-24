@@ -12,7 +12,7 @@ echo ""
 echo "=========================================================="
 echo "📦 Installing generated Debian package..."
 echo "=========================================================="
-sudo dpkg -i --force-all ../openmediavault-veracrypt_1.0.0_all.deb
+sudo dpkg -i --force-all ../openmediavault-veracrypt_1.0.1_all.deb
 sudo apt-get install -f -y
 
 echo ""

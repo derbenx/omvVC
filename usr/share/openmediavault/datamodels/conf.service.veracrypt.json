@@ -11,6 +11,10 @@
 			"type": "boolean",
 			"default": false
 		},
+		"installed": {
+			"type": "boolean",
+			"default": false
+		},
 		"profiles": {
 			"type": "object",
 			"properties": {

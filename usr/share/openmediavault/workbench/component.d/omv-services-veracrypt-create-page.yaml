@@ -8,160 +8,76 @@ data:
       service: VeraCrypt
       get:
         method: getStatus
-    fields:
-      - type: textInput
-        name: installed_str
-        value: "no"
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0: "1"
-              arg1: "2"
-      - type: textInput
-        name: vc_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🟢 VeraCrypt installed")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "yes"
-      - type: textInput
-        name: vc_not_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🔴 Please Install VeraCrypt!")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
-      - type: sharedfolder
-        name: shared_folder_uuid
-        label: _("Select Shared Folder (Optional)")
-        value: ""
-        hint: _("Choose an existing Shared Folder to use as the base path.")
-        modifiers:
-          - type: readonly
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
-      - type: textInput
-        name: path
-        label: _("Target Container File / Partition Device Path")
-        value: ""
-        required: true
-        hint: _("Examples include secure.vc (when a shared folder is selected above) or an absolute path such as /dev/sdc1.")
-        autocomplete: "off"
-        modifiers:
-          - type: readonly
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
-      - type: textInput
-        name: size
-        label: _("Volume Size")
-        value: "500M"
-        required: true
-        hint: _("Examples include 500M for 500 Megabytes, 10G for 10 Gigabytes, or max to use the full drive partition.")
-        modifiers:
-          - type: readonly
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
-      - type: passwordInput
-        name: password
-        label: _("VeraCrypt Passphrase")
-        value: ""
-        required: true
-        autocomplete: "new-password"
-        modifiers:
-          - type: readonly
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
-      - type: select
-        name: filesystem
-        label: _("Filesystem Format")
-        value: "exFAT"
-        store:
-          data:
-            - ["exFAT", "exFAT (Highly Recommended, Cross-Platform)"]
-            - ["FAT", "FAT32 (Max Compatibility, 4GB file size limit)"]
-            - ["ext4", "ext4 (Linux Only, Native Performance)"]
-            - ["NTFS", "NTFS (Windows & Linux compatibility)"]
-        modifiers:
-          - type: readonly
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
-      - type: select
-        name: encryption
-        label: _("Encryption Algorithm")
-        value: "AES"
-        store:
-          data:
-            - ["AES", "AES (Hardware Accelerated, Best Performance)"]
-            - ["Serpent", "Serpent"]
-            - ["Twofish", "Twofish"]
-        modifiers:
-          - type: readonly
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
-      - type: select
-        name: hash
-        label: _("Hash Algorithm")
-        value: "sha-512"
-        store:
-          data:
-            - ["sha-512", "SHA-512"]
-            - ["whirlpool", "Whirlpool"]
-        modifiers:
-          - type: readonly
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
-    buttons:
-      - id: create
-        text: _("Create & Format Volume")
-        icon: "mdi:plus-circle-outline"
-        enabledBind: "installed"
-        execute:
-          type: taskDialog
-          taskDialog:
-            config:
-              title: _("Creating VeraCrypt Encrypted Volume ...")
-              startOnInit: true
-              request:
-                service: VeraCrypt
-                method: createContainer
-                params:
-                  path: "{{ path }}"
-                  size: "{{ size }}"
-                  password: "{{ password }}"
-                  filesystem: "{{ filesystem }}"
-                  encryption: "{{ encryption }}"
-                  hash: "{{ hash }}"
-                  shared_folder_uuid: "{{ shared_folder_uuid }}"
+  fields:
+    - type: sharedfolder
+      name: shared_folder_uuid
+      label: _("Select Shared Folder (Optional)")
+      value: ""
+      hint: _("Choose an existing Shared Folder to use as the base path.")
+    - type: textInput
+      name: path
+      label: _("Target Container File / Partition Device Path")
+      value: ""
+      required: true
+      hint: _("Examples include secure.vc (when a shared folder is selected above) or an absolute path such as /dev/sdc1.")
+      autocomplete: "off"
+    - type: textInput
+      name: size
+      label: _("Volume Size")
+      value: "500M"
+      required: true
+      hint: _("Examples include 500M for 500 Megabytes, 10G for 10 Gigabytes, or max to use the full drive partition.")
+    - type: passwordInput
+      name: password
+      label: _("VeraCrypt Passphrase")
+      value: ""
+      required: true
+      autocomplete: "new-password"
+    - type: select
+      name: filesystem
+      label: _("Filesystem Format")
+      value: "exFAT"
+      store:
+        data:
+          - ["exFAT", "exFAT (Highly Recommended, Cross-Platform)"]
+          - ["FAT", "FAT32 (Max Compatibility, 4GB file size limit)"]
+          - ["ext4", "ext4 (Linux Only, Native Performance)"]
+          - ["NTFS", "NTFS (Windows & Linux compatibility)"]
+    - type: select
+      name: encryption
+      label: _("Encryption Algorithm")
+      value: "AES"
+      store:
+        data:
+          - ["AES", "AES (Hardware Accelerated, Best Performance)"]
+          - ["Serpent", "Serpent"]
+          - ["Twofish", "Twofish"]
+    - type: select
+      name: hash
+      label: _("Hash Algorithm")
+      value: "sha-512"
+      store:
+        data:
+          - ["sha-512", "SHA-512"]
+          - ["whirlpool", "Whirlpool"]
+  buttons:
+    - id: create
+      text: _("Create & Format Volume")
+      icon: "mdi:plus-circle-outline"
+      execute:
+        type: taskDialog
+        taskDialog:
+          config:
+            title: _("Creating VeraCrypt Encrypted Volume ...")
+            startOnInit: true
+            request:
+              service: VeraCrypt
+              method: createContainer
+              params:
+                path: "{{ path }}"
+                size: "{{ size }}"
+                password: "{{ password }}"
+                filesystem: "{{ filesystem }}"
+                encryption: "{{ encryption }}"
+                hash: "{{ hash }}"
+                shared_folder_uuid: "{{ shared_folder_uuid }}"

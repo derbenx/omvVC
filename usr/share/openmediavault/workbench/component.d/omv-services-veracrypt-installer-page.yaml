@@ -8,63 +8,43 @@ data:
       service: VeraCrypt
       get:
         method: getStatus
-    fields:
-      - type: textInput
-        name: installed_str
-        value: "no"
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0: "1"
-              arg1: "2"
-      - type: textInput
-        name: vc_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🟢 VeraCrypt installed")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "yes"
-      - type: textInput
-        name: vc_not_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🔴 Please Install VeraCrypt!")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
-    buttons:
-      - id: install
-        text: _("Install VeraCrypt")
-        icon: "mdi:package-variant-plus"
-        execute:
-          type: taskDialog
-          taskDialog:
-            config:
-              title: _("Installing VeraCrypt ...")
-              startOnInit: true
-              request:
-                service: VeraCrypt
-                method: installVeraCrypt
-      - id: remove
-        text: _("Remove/Purge VeraCrypt")
-        icon: "mdi:package-variant-minus"
-        execute:
-          type: taskDialog
-          taskDialog:
-            config:
-              title: _("Removing VeraCrypt ...")
-              startOnInit: true
-              request:
-                service: VeraCrypt
-                method: removeVeraCrypt
+  fields:
+    - type: textInput
+      name: installed_str
+      label: _("VeraCrypt Installed Status")
+      value: ""
+      readonly: true
+  buttons:
+    - id: check_install
+      text: _("Check Installation Status")
+      icon: "mdi:shield-check"
+      execute:
+        type: request
+        request:
+          service: VeraCrypt
+          method: checkInstallation
+        successUrl: "/services/veracrypt/installer"
+    - id: install
+      text: _("Install VeraCrypt")
+      icon: "mdi:package-variant-plus"
+      execute:
+        type: taskDialog
+        taskDialog:
+          config:
+            title: _("Installing VeraCrypt ...")
+            startOnInit: true
+            request:
+              service: VeraCrypt
+              method: installVeraCrypt
+    - id: remove
+      text: _("Remove/Purge VeraCrypt")
+      icon: "mdi:package-variant-minus"
+      execute:
+        type: taskDialog
+        taskDialog:
+          config:
+            title: _("Removing VeraCrypt ...")
+            startOnInit: true
+            request:
+              service: VeraCrypt
+              method: removeVeraCrypt

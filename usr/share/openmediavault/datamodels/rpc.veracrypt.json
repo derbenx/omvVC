@@ -231,6 +231,14 @@
 	},
 	{
 		"type": "rpc",
+		"id": "rpc.veracrypt.checkInstallation",
+		"params": {
+			"type": "object",
+			"properties": {}
+		}
+	},
+	{
+		"type": "rpc",
 		"id": "rpc.veracrypt.getStatus",
 		"params": {
 			"type": "object",
