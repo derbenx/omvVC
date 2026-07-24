@@ -168,6 +168,15 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
     private function isVeraCryptInstalled()
     {
+        try {
+            $proc = new \OMV\System\Process("veracrypt", ["-t", "--version"]);
+            $proc->execute($output, $exitStatus);
+            if ($exitStatus === 0) {
+                return true;
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
         $testPaths = [
             "/usr/bin/veracrypt",
             "/usr/sbin/veracrypt",

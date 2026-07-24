@@ -9,14 +9,40 @@ data:
       get:
         method: getStatus
     fields:
-      - type: hidden
+      - type: textInput
         name: installed_str
         value: "no"
+        readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0: "1"
+              arg1: "2"
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
-        value: ""
+        value: _("🟢 VeraCrypt installed")
         readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed_str
+              arg1: "yes"
+      - type: textInput
+        name: vc_not_installed_status
+        label: _("VeraCrypt Status")
+        value: _("🔴 Please Install VeraCrypt!")
+        readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0:
+                prop: installed_str
+              arg1: "no"
       - type: sharedfolder
         name: shared_folder_uuid
         label: _("Select Shared Folder (Optional)")
