@@ -924,6 +924,10 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $installed = $this->isVeraCryptInstalled();
             $status = $installed ? "installed" : "removed";
 
+            // Save the flag to a local file (always works!)
+            $this->saveInstalledStatusToFile($status);
+            $output[] = "Saved installation status to local file: " . $status;
+
             try {
                 $db = \OMV\Config\Database::getInstance();
                 $object = $this->getConfigObject();
@@ -931,7 +935,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                 $db->set($object);
                 $output[] = "Saved database status as: " . $status;
             } catch (\Exception $e) {
-                $output[] = "Error saving database status: " . $e->getMessage();
+                $output[] = "Error saving database status: " . $e->getMessage() . " (Fallback to local file succeeded.)";
             }
 
             if ($installed) {
@@ -960,6 +964,14 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                     $output[] = " - Slot " . $vol['slot'] . ": " . $vol['mountpoint'] . " (Container: " . $vol['container'] . ")";
                 }
             }
+
+            // Save the mount list to a file too, so the user can read/inspect it
+            try {
+                @file_put_contents("/var/lib/openmediavault/veracrypt_mounted_list.txt", implode("\n", $output) . "\n");
+            } catch (\Exception $e) {
+                // ignore
+            }
+
             file_put_contents($bgOutputFilename, implode("\n", $output) . "\n");
         });
     }
