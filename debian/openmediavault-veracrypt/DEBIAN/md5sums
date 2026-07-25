@@ -21,7 +21,7 @@ aa64299c67375af8cbe71c8223f98be1  usr/share/openmediavault/workbench/navigation.
 c5413e83aefebbb0fab33d4f13782686  usr/share/openmediavault/workbench/navigation.d/services.veracrypt.yaml
 e7b0f63047bf7400871f6ef0b3cd78e7  usr/share/openmediavault/workbench/route.d/services.veracrypt.create.yaml
 6c6fabb21d6a0150254c3e92cc701525  usr/share/openmediavault/workbench/route.d/services.veracrypt.help.yaml
-6034e604d23a8c2842334cfe69562167  usr/share/openmediavault/workbench/route.d/services.veracrypt.installer.yaml
+30deae06d0b8d3f206f41a1ac2b2acb5  usr/share/openmediavault/workbench/route.d/services.veracrypt.installer.yaml
 7da595da2c8ae4f66f994cc10a984ab5  usr/share/openmediavault/workbench/route.d/services.veracrypt.mounts.yaml
 4d337591c12615440985931840d20825  usr/share/openmediavault/workbench/route.d/services.veracrypt.profiles.uuid.yaml
 186d08383b58aa10861a6786352dedbb  usr/share/openmediavault/workbench/route.d/services.veracrypt.profiles.yaml

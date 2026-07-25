@@ -4,4 +4,3 @@ data:
   url: "/services/veracrypt/installer"
   title: _("VeraCrypt Installer")
   component: omv-services-veracrypt-installer-page
-  editing: true
