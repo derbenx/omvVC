@@ -12,36 +12,13 @@ data:
       - type: textInput
         name: installed_str
         value: "no"
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0: true
-              arg1: false
-      - type: textInput
-        name: vc_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🟢 VeraCrypt installed")
         readonly: true
         modifiers:
           - type: visible
             constraint:
               operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "yes"
-      - type: textInput
-        name: vc_not_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🔴 Please Install VeraCrypt!")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
+              arg0: "1"
+              arg1: "2"
       - type: sharedfolder
         name: shared_folder_uuid
         label: _("Select Shared Folder (Optional)")
@@ -60,6 +37,7 @@ data:
         value: ""
         required: true
         hint: _("Examples include secure.vc (when a shared folder is selected above) or an absolute path such as /dev/sdc1.")
+        autocomplete: "off"
         modifiers:
           - type: readonly
             constraint:
@@ -85,6 +63,7 @@ data:
         label: _("VeraCrypt Passphrase")
         value: ""
         required: true
+        autocomplete: "new-password"
         modifiers:
           - type: readonly
             constraint:

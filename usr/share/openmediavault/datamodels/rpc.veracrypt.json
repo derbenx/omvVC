@@ -281,5 +281,21 @@
 				}
 			}
 		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.checkInstall",
+		"params": {
+			"type": "object",
+			"properties": {}
+		}
+	},
+	{
+		"type": "rpc",
+		"id": "rpc.veracrypt.listMountedVolumes",
+		"params": {
+			"type": "object",
+			"properties": {}
+		}
 	}
 ]

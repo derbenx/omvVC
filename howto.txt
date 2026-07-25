@@ -29,7 +29,7 @@ Installing the Plugin
 ---------------------
 To install the generated '.deb' package on your OpenMediaVault server:
 
-  sudo dpkg -i ../openmediavault-veracrypt_1.0.0_all.deb
+  sudo dpkg -i ../openmediavault-veracrypt_1.0.2_all.deb
   sudo apt-get install -f -y
 
 

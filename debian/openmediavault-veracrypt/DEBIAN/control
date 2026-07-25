@@ -1,8 +1,8 @@
 Package: openmediavault-veracrypt
-Version: 1.0.0
+Version: 1.0.2
 Architecture: all
 Maintainer: OMV Plugin Developer <plugins@omv-extras.org>
-Installed-Size: 111
+Installed-Size: 116
 Depends: openmediavault (>= 8.0)
 Section: net
 Priority: optional

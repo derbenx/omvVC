@@ -1,5 +1,10 @@
-openmediavault-veracrypt (1.0.0) stable; urgency=low
+openmediavault-veracrypt (1.0.2) stable; urgency=low
 
-  * Initial release.
+  * Update to version 1.0.2.
+  * Add 'check install' of VeraCrypt.
+  * Ensure all operations verify VeraCrypt installation and halt with a clear error.
+  * Add 'List Mounted' button to the unmount tab.
+  * Remove redundant red/green status headers and virtual status entries from other tabs.
+  * Clean up unneeded debug logging code.
 
  -- OMV Plugin Developer <plugins@omv-extras.org>  Sun, 21 Jul 2026 12:00:00 +0000

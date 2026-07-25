@@ -22,30 +22,6 @@ data:
               operator: eq
               arg0: "1"
               arg1: "2"
-      - type: textInput
-        name: vc_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🟢 VeraCrypt installed")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "yes"
-      - type: textInput
-        name: vc_not_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🔴 Please Install VeraCrypt!")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
       - type: select
         name: saved_profile
         label: _("Select Saved Profile")

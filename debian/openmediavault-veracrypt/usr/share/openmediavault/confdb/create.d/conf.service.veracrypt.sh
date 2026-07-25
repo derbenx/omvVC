@@ -6,6 +6,7 @@ set -e
 cat <<EOF
 {
   "enable": false,
+  "installed": "-1",
   "profiles": {
     "profile": []
   }

@@ -8,40 +8,20 @@ data:
       service: VeraCrypt
       get:
         method: getProfileDetails
+      post:
+        method: setProfile
+        successUrl: "/services/veracrypt/profiles"
     fields:
       - type: textInput
         name: installed_str
         value: "no"
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0: true
-              arg1: false
-      - type: textInput
-        name: vc_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🟢 VeraCrypt installed")
         readonly: true
         modifiers:
           - type: visible
             constraint:
               operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "yes"
-      - type: textInput
-        name: vc_not_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🔴 Please Install VeraCrypt!")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
+              arg0: "1"
+              arg1: "2"
       - type: select
         name: saved_profile
         label: _("Select Saved Profile")
@@ -51,9 +31,16 @@ data:
           proxy:
             service: VeraCrypt
             method: getProfileList
-      - type: hidden
+      - type: textInput
         name: uuid
         value: "{{ newconfobjuuid }}"
+        readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0: "1"
+              arg1: "2"
       - type: textInput
         name: name
         label: _("Profile Name")
@@ -84,10 +71,12 @@ data:
         value: ""
         required: true
         hint: _("Enter an absolute path, or a relative folder name if a Shared Folder is selected.")
+        autocomplete: "off"
       - type: passwordInput
         name: password
         label: _("VeraCrypt Password")
         value: ""
+        autocomplete: "new-password"
       - type: textInput
         name: permissions
         label: _("Permissions (Standard Octal)")
@@ -111,21 +100,7 @@ data:
         text: _("Save")
         icon: "mdi:content-save"
         execute:
-          type: request
-          request:
-            service: VeraCrypt
-            method: setProfile
-            params:
-              uuid: "{{ uuid }}"
-              name: "{{ name }}"
-              type: "{{ type }}"
-              shared_folder_uuid: "{{ shared_folder_uuid }}"
-              container_location: "{{ container_location }}"
-              endpoint_folder: "{{ endpoint_folder }}"
-              password: "{{ password }}"
-              permissions: "{{ permissions }}"
-              save_password: true
-          successUrl: "/services/veracrypt/profiles"
+          type: submit
       - id: delete
         text: _("Delete")
         icon: "mdi:delete"
