@@ -1028,7 +1028,9 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
     public function getMountedVolumes($params, $context)
     {
-        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        if ($context !== null) {
+            $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+        }
         $this->validateMethodParams($params, "rpc.veracrypt.getMountedVolumes");
         $this->checkVeraCryptInstalled();
 
