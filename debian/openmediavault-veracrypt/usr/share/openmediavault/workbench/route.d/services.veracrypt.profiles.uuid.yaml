@@ -4,3 +4,4 @@ data:
   url: "/services/veracrypt/profiles/:uuid"
   title: _("Profiles")
   component: omv-services-veracrypt-profiles-page
+  editing: true

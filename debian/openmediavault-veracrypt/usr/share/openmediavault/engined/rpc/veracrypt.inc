@@ -175,15 +175,6 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
     private function isVeraCryptInstalled()
     {
-        try {
-            $proc = new \OMV\System\Process("veracrypt", ["-t", "--version"]);
-            $proc->execute($output, $exitStatus);
-            if ($exitStatus === 0) {
-                return true;
-            }
-        } catch (\Exception $e) {
-            // ignore
-        }
         $testPaths = [
             "/usr/bin/veracrypt",
             "/usr/sbin/veracrypt",
@@ -194,20 +185,23 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             "/usr/sbin/veracrypt-console"
         ];
         foreach ($testPaths as $path) {
-            try {
-                $proc = new \OMV\System\Process("test", ["-f", $path]);
-                $proc->execute($output, $exitStatus);
-                if ($exitStatus === 0) {
-                    return true;
-                }
-            } catch (\Exception $e) {
-                // ignore
+            if (@file_exists($path)) {
+                return true;
             }
         }
         try {
-            $proc = new \OMV\System\Process("sh", ["-c", "command -v veracrypt || which veracrypt || find /usr -name veracrypt -type f"]);
+            $proc = new \OMV\System\Process("veracrypt", ["--version"]);
             $proc->execute($output, $exitStatus);
-            if ($exitStatus === 0 && !empty($output)) {
+            if ($exitStatus === 0) {
+                return true;
+            }
+        } catch (\Exception $e) {
+            // ignore
+        }
+        try {
+            $proc = new \OMV\System\Process("which", ["veracrypt"]);
+            $proc->execute($output, $exitStatus);
+            if ($exitStatus === 0) {
                 return true;
             }
         } catch (\Exception $e) {
@@ -270,7 +264,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         }
 
         // Check if veracrypt is installed
-        $installed = $this->isVeraCryptInstalled();
+        $installed = $this->getSavedInstalledStatus();
 
         // Get active mounts
         $activeMounts = [];
@@ -712,7 +706,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.veracrypt.getProfileDetails");
         $this->logDebug("getProfileDetails() called with params: " . json_encode($params));
 
-        $installed = $this->isVeraCryptInstalled();
+        $installed = $this->getSavedInstalledStatus();
         $uuid = isset($params['uuid']) ? $params['uuid'] : '';
 
         // Ensure a valid UUIDv4 is generated if empty, new, or invalid
@@ -893,12 +887,40 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         });
     }
 
+    private function getSavedInstalledStatus()
+    {
+        try {
+            $config = $this->getConfigObject();
+            $saved = $config->get("installed");
+            if ($saved === "installed") {
+                return true;
+            } elseif ($saved === "removed") {
+                return false;
+            }
+        } catch (\Exception $e) {
+            // fallback
+        }
+
+        $installed = $this->isVeraCryptInstalled();
+        $status = $installed ? "installed" : "removed";
+        try {
+            $db = \OMV\Config\Database::getInstance();
+            $object = $this->getConfigObject();
+            $object->set("installed", $status);
+            $db->set($object);
+        } catch (\Exception $e) {
+            // ignore
+        }
+        return $installed;
+    }
+
     public function checkInstall($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
 
         return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) {
-            echo "Checking if VeraCrypt is installed on this system...\n";
+            $output = [];
+            $output[] = "Checking if VeraCrypt is installed on this system...";
             $installed = $this->isVeraCryptInstalled();
             $status = $installed ? "installed" : "removed";
 
@@ -907,15 +929,18 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                 $object = $this->getConfigObject();
                 $object->set("installed", $status);
                 $db->set($object);
+                $output[] = "Saved database status as: " . $status;
             } catch (\Exception $e) {
-                // ignore
+                $output[] = "Error saving database status: " . $e->getMessage();
             }
 
             if ($installed) {
-                echo "SUCCESS: VeraCrypt is installed! (Saved status as 'installed')\n";
+                $output[] = "SUCCESS: VeraCrypt is installed!";
             } else {
-                echo "FAILED: VeraCrypt is NOT installed! (Saved status as 'removed')\n";
+                $output[] = "FAILED: VeraCrypt is NOT installed!";
             }
+
+            file_put_contents($bgOutputFilename, implode("\n", $output) . "\n");
         });
     }
 
@@ -925,15 +950,17 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) {
+            $output = [];
             $volumes = $this->getMountedVolumes([], null);
             if (empty($volumes)) {
-                echo "No VeraCrypt volumes are currently mounted.\n";
+                $output[] = "No VeraCrypt volumes are currently mounted.";
             } else {
-                echo "Currently mounted VeraCrypt folders:\n";
+                $output[] = "Currently mounted VeraCrypt folders:";
                 foreach ($volumes as $vol) {
-                    echo " - Slot " . $vol['slot'] . ": " . $vol['mountpoint'] . " (Container: " . $vol['container'] . ")\n";
+                    $output[] = " - Slot " . $vol['slot'] . ": " . $vol['mountpoint'] . " (Container: " . $vol['container'] . ")";
                 }
             }
+            file_put_contents($bgOutputFilename, implode("\n", $output) . "\n");
         });
     }
 
@@ -943,8 +970,8 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.veracrypt.getStatus");
         $this->logDebug("getStatus() called with params: " . json_encode($params));
 
-        // 1. Check if VeraCrypt is installed
-        $installed = $this->isVeraCryptInstalled();
+        // 1. Check if VeraCrypt is installed (using our database saved state or fallback check)
+        $installed = $this->getSavedInstalledStatus();
 
 
         // 2. Check mount status of the profile if uuid is provided, or list active mounts
