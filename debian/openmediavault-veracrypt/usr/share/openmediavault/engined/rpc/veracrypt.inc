@@ -950,14 +950,18 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) {
-            $volumes = $this->getMountedVolumes([], null);
-            if (empty($volumes)) {
-                echo "No VeraCrypt volumes are currently mounted.\n";
-            } else {
-                echo "Currently mounted VeraCrypt folders:\n";
-                foreach ($volumes as $vol) {
-                    echo " - Slot " . $vol['slot'] . ": " . $vol['mountpoint'] . " (Container: " . $vol['container'] . ")\n";
+            try {
+                $volumes = $this->getMountedVolumes([], null);
+                if (empty($volumes)) {
+                    echo "No VeraCrypt volumes are currently mounted.\n";
+                } else {
+                    echo "Currently mounted VeraCrypt folders:\n";
+                    foreach ($volumes as $vol) {
+                        echo " - Slot " . $vol['slot'] . ": " . $vol['mountpoint'] . " (Container: " . $vol['container'] . ")\n";
+                    }
                 }
+            } catch (\Exception $e) {
+                echo "ERROR: " . $e->getMessage() . "\n";
             }
         });
     }
@@ -1051,8 +1055,8 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
     {
         if ($context !== null) {
             $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+            $this->validateMethodParams($params, "rpc.veracrypt.getMountedVolumes");
         }
-        $this->validateMethodParams($params, "rpc.veracrypt.getMountedVolumes");
         $this->checkVeraCryptInstalled();
 
         $volumes = [];
