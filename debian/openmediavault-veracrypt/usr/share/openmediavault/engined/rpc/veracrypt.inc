@@ -248,6 +248,35 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         }
     }
 
+    private function parseActiveMountPoints($listOutput)
+    {
+        $activeMounts = [];
+        foreach ($listOutput as $line) {
+            $trimmedLine = trim($line);
+            if (empty($trimmedLine) || stripos($trimmedLine, "no volumes") !== false || stripos($trimmedLine, "error") !== false) {
+                continue;
+            }
+
+            // Extract mountpoint
+            $parts = preg_split('/\s+/', $trimmedLine);
+            $paths = [];
+            foreach ($parts as $part) {
+                if (strpos($part, '/') === 0 && strpos($part, '/dev/') !== 0) {
+                    $paths[] = $part;
+                }
+            }
+            if (!empty($paths)) {
+                $mountpoint = $paths[count($paths) - 1];
+                // Fallback: if we have "on /path", override mountpoint with that
+                if (preg_match('/on\s+(\/\S+)/i', $line, $onMatches)) {
+                    $mountpoint = $onMatches[1];
+                }
+                $activeMounts[] = $mountpoint;
+            }
+        }
+        return array_unique($activeMounts);
+    }
+
     public function getProfileList($params, $context)
     {
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
@@ -279,11 +308,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                 $cmdList = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
                 $cmdList->execute($listOutput, $listExitStatus);
                 if ($listExitStatus === 0) {
-                    foreach ($listOutput as $line) {
-                        if (preg_match('/on\s+(.+)$/', $line, $matches)) {
-                            $activeMounts[] = trim($matches[1]);
-                        }
-                    }
+                    $activeMounts = $this->parseActiveMountPoints($listOutput);
                 }
             } catch (\Exception $e) {
                 // Ignore exception if veracrypt -l exits with non-zero (meaning no volumes are mounted)
@@ -956,11 +981,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                 $cmdList = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
                 $cmdList->execute($listOutput, $listExitStatus);
                 if ($listExitStatus === 0) {
-                    foreach ($listOutput as $line) {
-                        if (preg_match('/on\s+(.+)$/', $line, $matches)) {
-                            $activeMounts[] = trim($matches[1]);
-                        }
-                    }
+                    $activeMounts = $this->parseActiveMountPoints($listOutput);
                 }
             } catch (\Exception $e) {
                 // Ignore exception if veracrypt -l exits with non-zero (meaning no volumes are mounted)
@@ -1042,39 +1063,45 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             if ($exitStatus === 0) {
                 foreach ($output as $line) {
                     $trimmedLine = trim($line);
-                    if (empty($trimmedLine)) {
+                    if (empty($trimmedLine) || stripos($trimmedLine, "no volumes") !== false || stripos($trimmedLine, "error") !== false) {
                         continue;
                     }
-                    if (preg_match('/^(\d+):\s+(.+)$/', $trimmedLine, $matches)) {
-                        $slot = $matches[1];
-                        $rest = trim($matches[2]);
-                        $container = "";
-                        $device = "";
-                        $mountpoint = "";
 
-                        if (preg_match('/^(.+)\s+(\/dev\/\S+)\s+(\/.+)$/', $rest, $subMatches)) {
-                            $container = trim($subMatches[1]);
-                            $device = trim($subMatches[2]);
-                            $mountpoint = trim($subMatches[3]);
-                        } elseif (preg_match('/^(.+)\s+(\/.+)$/', $rest, $subMatches)) {
-                            $container = trim($subMatches[1]);
-                            $device = "";
-                            $mountpoint = trim($subMatches[2]);
-                        } else {
-                            $parts = preg_split('/\s+/', $rest);
-                            if (count($parts) >= 2) {
-                                $mountpoint = array_pop($parts);
-                                $device = array_pop($parts);
-                                $container = implode(" ", $parts);
+                    // Extract slot
+                    $slot = "1";
+                    if (preg_match('/^(Slot\s+)?(\d+)[:.]\s*/i', $trimmedLine, $slotMatches)) {
+                        $slot = $slotMatches[2];
+                        $trimmedLine = substr($trimmedLine, strlen($slotMatches[0]));
+                    }
+
+                    $parts = preg_split('/\s+/', $trimmedLine);
+                    $paths = [];
+                    $device = "";
+                    foreach ($parts as $part) {
+                        if (strpos($part, '/') === 0) {
+                            if (strpos($part, '/dev/') === 0) {
+                                $device = $part;
                             } else {
-                                $container = $rest;
-                                $device = "";
-                                $mountpoint = $rest;
+                                $paths[] = $part;
                             }
+                        }
+                    }
+
+                    if (!empty($paths)) {
+                        if (count($paths) >= 2) {
+                            $container = $paths[0];
+                            $mountpoint = $paths[count($paths) - 1];
+                        } else {
+                            $container = $paths[0];
+                            $mountpoint = $paths[0];
+                        }
+
+                        if (preg_match('/on\s+(\/\S+)/i', $line, $onMatches)) {
+                            $mountpoint = $onMatches[1];
                         }
 
                         $volumes[] = [
-                            "id" => $slot,
+                            "id" => $mountpoint,
                             "slot" => $slot,
                             "container" => $container,
                             "device" => $device,
@@ -1097,57 +1124,15 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         $volumes = [];
-
-        try {
-            $cmd = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
-            $cmd->execute($output, $exitStatus);
-            if ($exitStatus === 0) {
-                foreach ($output as $line) {
-                    $trimmedLine = trim($line);
-                    if (empty($trimmedLine)) {
-                        continue;
-                    }
-                    if (preg_match('/^(\d+):\s+(.+)$/', $trimmedLine, $matches)) {
-                        $slot = $matches[1];
-                        $rest = trim($matches[2]);
-                        $container = "";
-                        $device = "";
-                        $mountpoint = "";
-
-                        if (preg_match('/^(.+)\s+(\/dev\/\S+)\s+(\/.+)$/', $rest, $subMatches)) {
-                            $container = trim($subMatches[1]);
-                            $device = trim($subMatches[2]);
-                            $mountpoint = trim($subMatches[3]);
-                        } elseif (preg_match('/^(.+)\s+(\/.+)$/', $rest, $subMatches)) {
-                            $container = trim($subMatches[1]);
-                            $device = "";
-                            $mountpoint = trim($subMatches[2]);
-                        } else {
-                            $parts = preg_split('/\s+/', $rest);
-                            if (count($parts) >= 2) {
-                                $mountpoint = array_pop($parts);
-                                $device = array_pop($parts);
-                                $container = implode(" ", $parts);
-                            } else {
-                                $container = $rest;
-                                $device = "";
-                                $mountpoint = $rest;
-                            }
-                        }
-
-                        $volumes[] = [
-                            "id" => $mountpoint,
-                            "name" => $mountpoint,
-                            "value" => $mountpoint,
-                            "label" => $mountpoint
-                        ];
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-            // ignore
+        $mounted = $this->getMountedVolumes([], $context);
+        foreach ($mounted as $vol) {
+            $volumes[] = [
+                "id" => $vol['mountpoint'],
+                "name" => $vol['mountpoint'],
+                "value" => $vol['mountpoint'],
+                "label" => $vol['mountpoint']
+            ];
         }
-
         return $volumes;
     }
 
