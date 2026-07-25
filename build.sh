@@ -6,13 +6,13 @@ set -e
 echo "=========================================================="
 echo "🔧 Rebuilding Debian package..."
 echo "=========================================================="
-dpkg-buildpackage -us -uc -b -d
+sudo dpkg-buildpackage -us -uc -b -d
 
 echo ""
 echo "=========================================================="
 echo "📦 Installing generated Debian package..."
 echo "=========================================================="
-sudo dpkg -i ../openmediavault-veracrypt_1.0.0_all.deb
+sudo dpkg -i ../openmediavault-veracrypt_1.0.2_all.deb
 sudo apt-get install -f -y
 
 echo ""

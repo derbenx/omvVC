@@ -4,3 +4,4 @@ data:
   url: "/services/veracrypt/mounts"
   title: _("Active Mounts")
   component: omv-services-veracrypt-mounts-page
+  editing: true
