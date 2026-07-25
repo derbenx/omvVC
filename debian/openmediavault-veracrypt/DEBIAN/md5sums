@@ -6,7 +6,7 @@ b0df580275ee9b90aea9203164e846f5  usr/share/doc/openmediavault-veracrypt/changel
 07be96f16e9e132b27e24c0390316ec7  usr/share/openmediavault/confdb/create.d/conf.service.veracrypt.sh
 098c20d3ad888b1d39de61eb8d1274fd  usr/share/openmediavault/datamodels/conf.service.veracrypt.json
 0bbe820be03fb1542e9d4f95e4602f21  usr/share/openmediavault/datamodels/rpc.veracrypt.json
-35374998093bafcb764c0703c5250175  usr/share/openmediavault/engined/rpc/veracrypt.inc
+7fe81687e367ed34e10dd70e47152e92  usr/share/openmediavault/engined/rpc/veracrypt.inc
 caa97eb8b547ed48abeac0b2133bd993  usr/share/openmediavault/workbench/component.d/omv-services-veracrypt-create-page.yaml
 6f63298ee4acd7da854302e63726126b  usr/share/openmediavault/workbench/component.d/omv-services-veracrypt-help-page.yaml
 5197c1c6ff3e1f005133eb6408bcd3b3  usr/share/openmediavault/workbench/component.d/omv-services-veracrypt-installer-page.yaml

@@ -1127,55 +1127,14 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         $volumes = [];
-
-        try {
-            $cmd = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
-            $cmd->execute($output, $exitStatus);
-            if ($exitStatus === 0) {
-                foreach ($output as $line) {
-                    $trimmedLine = trim($line);
-                    if (empty($trimmedLine)) {
-                        continue;
-                    }
-                    if (preg_match('/^(\d+):\s+(.+)$/', $trimmedLine, $matches)) {
-                        $slot = $matches[1];
-                        $rest = trim($matches[2]);
-                        $container = "";
-                        $device = "";
-                        $mountpoint = "";
-
-                        if (preg_match('/^(.+)\s+(\/dev\/\S+)\s+(\/.+)$/', $rest, $subMatches)) {
-                            $container = trim($subMatches[1]);
-                            $device = trim($subMatches[2]);
-                            $mountpoint = trim($subMatches[3]);
-                        } elseif (preg_match('/^(.+)\s+(\/.+)$/', $rest, $subMatches)) {
-                            $container = trim($subMatches[1]);
-                            $device = "";
-                            $mountpoint = trim($subMatches[2]);
-                        } else {
-                            $parts = preg_split('/\s+/', $rest);
-                            if (count($parts) >= 2) {
-                                $mountpoint = array_pop($parts);
-                                $device = array_pop($parts);
-                                $container = implode(" ", $parts);
-                            } else {
-                                $container = $rest;
-                                $device = "";
-                                $mountpoint = $rest;
-                            }
-                        }
-
-                        $volumes[] = [
-                            "id" => $mountpoint,
-                            "name" => $mountpoint,
-                            "value" => $mountpoint,
-                            "label" => $mountpoint
-                        ];
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-            // ignore
+        $mounted = $this->getMountedVolumesInternal();
+        foreach ($mounted as $vol) {
+            $volumes[] = [
+                "id" => $vol['mountpoint'],
+                "name" => $vol['mountpoint'],
+                "value" => $vol['mountpoint'],
+                "label" => $vol['mountpoint'] . " (Slot " . $vol['slot'] . ": " . $vol['container'] . ")"
+            ];
         }
 
         return $volumes;
