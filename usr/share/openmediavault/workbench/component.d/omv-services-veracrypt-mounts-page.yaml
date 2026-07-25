@@ -2,38 +2,59 @@ version: "1.0"
 type: component
 data:
   name: omv-services-veracrypt-mounts-page
-  type: grid
+  type: formPage
   config:
-    store:
-      proxy:
-        service: VeraCrypt
-        method: getMountedVolumes
-    columns:
-      - name: _("Slot")
-        prop: slot
-        type: string
-      - name: _("Mount Point")
-        prop: mountpoint
-        type: string
-      - name: _("Container")
-        prop: container
-        type: string
-    rowActions:
-      - id: unmount
-        icon: "mdi:stop-circle-outline"
-        tooltip: _("Unmount Volume")
+    request:
+      service: VeraCrypt
+      get:
+        method: getStatus
+    fields:
+      - type: textInput
+        name: installed_str
+        value: "no"
+        readonly: true
+        modifiers:
+          - type: visible
+            constraint:
+              operator: eq
+              arg0: "1"
+              arg1: "2"
+      - type: select
+        name: mounted_volumes
+        label: _("Select Active Mounts to Dismount")
+        value: []
+        multiple: true
+        store:
+          proxy:
+            service: VeraCrypt
+            method: getMountedVolumesList
+    buttons:
+      - id: list_mounted
+        text: _("List Mounted")
+        icon: "mdi:list-status"
         execute:
           type: taskDialog
           taskDialog:
             config:
-              title: _("Unmounting VeraCrypt Volume ...")
+              title: _("VeraCrypt Mounted Volumes")
               startOnInit: true
               request:
                 service: VeraCrypt
-                method: unmount
+                method: listMountedVolumes
+      - id: unmount
+        text: _("Unmount Selected")
+        icon: "mdi:stop-circle-outline"
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Unmounting Selected VeraCrypt Volumes ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: unmountMultiple
                 params:
-                  endpoint_folder: "{{ mountpoint }}"
-    buttons:
+                  mounted_volumes: "{{ mounted_volumes }}"
       - id: unmount_all
         text: _("Unmount All")
         icon: "mdi:stop-circle-multiple-outline"
