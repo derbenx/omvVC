@@ -12,12 +12,13 @@ data:
       - type: textInput
         name: installed_str
         value: "no"
+        readonly: true
         modifiers:
           - type: visible
             constraint:
               operator: eq
-              arg0: true
-              arg1: false
+              arg0: "1"
+              arg1: "2"
       - type: textInput
         name: vc_installed_status
         label: _("VeraCrypt Status")
@@ -43,6 +44,18 @@ data:
                 prop: installed_str
               arg1: "no"
     buttons:
+      - id: check_install
+        text: _("Check Install")
+        icon: "mdi:check-circle-outline"
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Checking VeraCrypt Installation ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: checkInstall
       - id: install
         text: _("Install VeraCrypt")
         icon: "mdi:package-variant-plus"
