@@ -44,6 +44,18 @@ data:
                 prop: installed_str
               arg1: "no"
     buttons:
+      - id: check_install
+        text: _("Check Install")
+        icon: "mdi:check-circle-outline"
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Checking VeraCrypt Installation ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: checkInstall
       - id: install
         text: _("Install VeraCrypt")
         icon: "mdi:package-variant-plus"

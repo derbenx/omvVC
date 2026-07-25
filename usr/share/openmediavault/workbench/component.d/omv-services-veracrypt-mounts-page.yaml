@@ -19,30 +19,6 @@ data:
               operator: eq
               arg0: "1"
               arg1: "2"
-      - type: textInput
-        name: vc_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🟢 VeraCrypt installed")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "yes"
-      - type: textInput
-        name: vc_not_installed_status
-        label: _("VeraCrypt Status")
-        value: _("🔴 Please Install VeraCrypt!")
-        readonly: true
-        modifiers:
-          - type: visible
-            constraint:
-              operator: eq
-              arg0:
-                prop: installed_str
-              arg1: "no"
       - type: checklist
         name: mounted_volumes
         label: _("Select Active Mounts to Dismount")
@@ -52,6 +28,18 @@ data:
             service: VeraCrypt
             method: getMountedVolumesList
     buttons:
+      - id: list_mounted
+        text: _("List Mounted")
+        icon: "mdi:list-status"
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("VeraCrypt Mounted Volumes")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: listMountedVolumes
       - id: unmount
         text: _("Unmount Selected")
         icon: "mdi:stop-circle-outline"
@@ -64,6 +52,8 @@ data:
               request:
                 service: VeraCrypt
                 method: unmountMultiple
+                params:
+                  mounted_volumes: "{{ mounted_volumes }}"
       - id: unmount_all
         text: _("Unmount All")
         icon: "mdi:stop-circle-multiple-outline"
