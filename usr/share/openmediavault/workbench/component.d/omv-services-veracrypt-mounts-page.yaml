@@ -43,7 +43,7 @@ data:
         name: mounted_volume_custom
         label: _("Or Enter Mountpoint Path Manually")
         value: ""
-        hint: _("Optional: Enter absolute mountpoint path directly (e.g. /srv/dev-disk-by-uuid-.../vc/aii).")
+        hint: _("Optionally enter absolute mountpoint path directly (e.g. /srv/dev-disk-by-uuid-.../vc/aii).")
         autocomplete: "off"
     buttons:
       - id: list_mounted
