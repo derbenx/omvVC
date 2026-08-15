@@ -41,23 +41,17 @@ data:
             method: getMountedVolumesList
       - type: textInput
         name: mounted_volume_custom
-        label: _("Or Enter Mountpoint Path Manually")
+        label: _("Or Enter Mountpoint Path / Slot Number(s)")
         value: ""
-        hint: _("Optionally enter absolute mountpoint path directly (e.g. /srv/dev-disk-by-uuid-.../vc/aii).")
+        hint: _("Enter slot numbers such as 1, 1,2, [1 2 3], or 1&3, or enter an absolute mountpoint path directly.")
         autocomplete: "off"
     buttons:
-      - id: list_mounted
-        text: _("List Mounted")
-        icon: "mdi:list-status"
+      - id: refresh
+        text: _("Refresh")
+        icon: "mdi:refresh"
         execute:
-          type: taskDialog
-          taskDialog:
-            config:
-              title: _("VeraCrypt Mounted Volumes")
-              startOnInit: true
-              request:
-                service: VeraCrypt
-                method: listMountedVolumes
+          type: url
+          url: "/services/veracrypt/mounts"
       - id: unmount
         text: _("Unmount Selected")
         icon: "mdi:stop-circle-outline"
@@ -72,6 +66,7 @@ data:
                 method: unmountMultiple
                 params:
                   mounted_volumes: ["{{ mounted_volume }}", "{{ mounted_volume_custom }}"]
+          successUrl: "/services/veracrypt/mounts"
       - id: unmount_all
         text: _("Unmount All")
         icon: "mdi:stop-circle-multiple-outline"
@@ -84,3 +79,4 @@ data:
               request:
                 service: VeraCrypt
                 method: unmountAll
+          successUrl: "/services/veracrypt/mounts"

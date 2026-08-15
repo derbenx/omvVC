@@ -1241,12 +1241,56 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodParams($params, "rpc.veracrypt.unmountMultiple");
         $this->checkVeraCryptInstalled();
 
-        $mountpoints = isset($params['mounted_volumes']) ? $params['mounted_volumes'] : [];
+        $rawInputs = isset($params['mounted_volumes']) ? $params['mounted_volumes'] : [];
 
-        return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) use ($mountpoints) {
+        return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) use ($rawInputs) {
+            // Get currently mounted volumes to map slot numbers to mountpoints
+            $activeVolumes = $this->getMountedVolumes([], null);
+            $slotMap = [];
+            foreach ($activeVolumes as $vol) {
+                if (isset($vol['slot']) && isset($vol['mountpoint'])) {
+                    $slotMap[(string)$vol['slot']] = $vol['mountpoint'];
+                }
+            }
+
+            $targetPaths = [];
+
+            foreach ($rawInputs as $raw) {
+                if (empty($raw)) {
+                    continue;
+                }
+                $rawTrimmed = trim((string)$raw);
+                if (empty($rawTrimmed)) {
+                    continue;
+                }
+
+                // Check if absolute filesystem path
+                if (strpos($rawTrimmed, '/') === 0) {
+                    $targetPaths[] = $rawTrimmed;
+                    continue;
+                }
+
+                // Handle slot numbers and flexible formats (e.g. "1", "1,2", "[1 2 3]", "1&3", "[1,2]")
+                // Extract digits/numbers from string
+                if (preg_match_all('/\d+/', $rawTrimmed, $digitMatches)) {
+                    foreach ($digitMatches[0] as $slotNum) {
+                        if (isset($slotMap[$slotNum])) {
+                            $targetPaths[] = $slotMap[$slotNum];
+                        }
+                    }
+                }
+            }
+
+            $targetPaths = array_unique($targetPaths);
+
+            if (empty($targetPaths)) {
+                file_put_contents($bgOutputFilename, "No valid mounted targets found to unmount.\n", FILE_APPEND);
+                return ["No valid mounted targets found to unmount."];
+            }
+
             $script = "/usr/sbin/vcu.sh";
             $output = [];
-            foreach ($mountpoints as $mp) {
+            foreach ($targetPaths as $mp) {
                 if (empty($mp)) {
                     continue;
                 }
