@@ -6,6 +6,9 @@ data:
   config:
     autoReload: true
     stateId: "omv-services-veracrypt-dismount-page"
+    sorters:
+      - dir: asc
+        prop: slot
     store:
       proxy:
         service: VeraCrypt
@@ -50,6 +53,7 @@ data:
                 params:
                   mounted_volumes:
                     - "{{ _selection[0].mountpoint }}"
+          successUrl: "/services/veracrypt/dismount"
       - id: unmount_all
         text: _("Unmount All")
         icon: "mdi:stop-circle-multiple-outline"
@@ -62,3 +66,4 @@ data:
               request:
                 service: VeraCrypt
                 method: unmountAll
+          successUrl: "/services/veracrypt/dismount"

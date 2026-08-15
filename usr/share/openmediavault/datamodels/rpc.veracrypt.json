@@ -248,8 +248,13 @@
 		"id": "rpc.veracrypt.getMountedVolumes",
 		"params": {
 			"type": "object",
-			"properties": {},
-			"additionalProperties": true
+			"properties": {
+				"start": { "type": "integer" },
+				"limit": { "type": "integer" },
+				"page": { "type": "integer" },
+				"sortField": { "type": "string" },
+				"sortDir": { "type": "string" }
+			}
 		}
 	},
 	{
@@ -257,8 +262,13 @@
 		"id": "rpc.veracrypt.getMountedVolumesList",
 		"params": {
 			"type": "object",
-			"properties": {},
-			"additionalProperties": true
+			"properties": {
+				"start": { "type": "integer" },
+				"limit": { "type": "integer" },
+				"page": { "type": "integer" },
+				"sortField": { "type": "string" },
+				"sortDir": { "type": "string" }
+			}
 		}
 	},
 	{

@@ -952,7 +952,8 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
         return $this->execBgProc(function($bgStatusFilename, $bgOutputFilename) {
             try {
-                $volumes = $this->getMountedVolumes([], null);
+                $res = $this->getMountedVolumes([], null);
+                $volumes = is_array($res) && isset($res['data']) ? $res['data'] : (is_array($res) ? $res : []);
                 if (empty($volumes)) {
                     file_put_contents($bgOutputFilename, "No VeraCrypt volumes are currently mounted.\n", FILE_APPEND);
                 } else {
@@ -1190,6 +1191,14 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                     }
                 }
             }
+        }
+
+        // Datatable stores in OMV require {"data": [...], "total": N} when called via RPC ($context !== null)
+        if ($context !== null) {
+            return [
+                "data" => $volumes,
+                "total" => count($volumes)
+            ];
         }
 
         return $volumes;
