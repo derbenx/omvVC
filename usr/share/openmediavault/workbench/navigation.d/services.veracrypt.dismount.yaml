@@ -1,0 +1,7 @@
+version: "1.0"
+type: navigation
+data:
+  path: "services.veracrypt.dismount"
+  text: _("Mounted/Dismount")
+  icon: "mdi:folder-remove"
+  position: 25

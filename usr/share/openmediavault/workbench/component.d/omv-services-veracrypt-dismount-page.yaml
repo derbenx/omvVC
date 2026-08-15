@@ -1,0 +1,64 @@
+version: "1.0"
+type: component
+data:
+  name: omv-services-veracrypt-dismount-page
+  type: datatablePage
+  config:
+    autoReload: true
+    stateId: "omv-services-veracrypt-dismount-page"
+    store:
+      proxy:
+        service: VeraCrypt
+        method: getMountedVolumes
+    columns:
+      - name: _("Slot")
+        prop: "slot"
+        flexGrow: 1
+        sortable: true
+      - name: _("Mount Name")
+        prop: "mount_name"
+        flexGrow: 2
+        sortable: true
+      - name: _("Mountpoint Path")
+        prop: "mountpoint"
+        flexGrow: 4
+        sortable: true
+      - name: _("Container / Device")
+        prop: "container"
+        flexGrow: 4
+        sortable: true
+    actions:
+      - id: refresh
+        type: iconButton
+        icon: "mdi:refresh"
+        tooltip: _("Reload list")
+        execute:
+          type: reload
+      - id: unmount
+        text: _("Unmount Selected")
+        icon: "mdi:stop-circle-outline"
+        enabledBind: "_selection.length === 1"
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Unmounting Selected VeraCrypt Volume ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: unmountMultiple
+                params:
+                  mounted_volumes:
+                    - "{{ _selection[0].mountpoint }}"
+      - id: unmount_all
+        text: _("Unmount All")
+        icon: "mdi:stop-circle-multiple-outline"
+        execute:
+          type: taskDialog
+          taskDialog:
+            config:
+              title: _("Unmounting All VeraCrypt Volumes ...")
+              startOnInit: true
+              request:
+                service: VeraCrypt
+                method: unmountAll

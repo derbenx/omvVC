@@ -1135,6 +1135,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                         $volumes[] = [
                             "id" => $mountpoint,
                             "slot" => $slot,
+                            "mount_name" => basename($mountpoint),
                             "container" => $container,
                             "device" => $device,
                             "mountpoint" => $mountpoint
@@ -1155,6 +1156,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                     $volumes[] = [
                         "id" => $mp,
                         "slot" => (string)($idx + 1),
+                        "mount_name" => basename($mp),
                         "container" => $mp,
                         "device" => "",
                         "mountpoint" => $mp
@@ -1177,6 +1179,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                             $volumes[] = [
                                 "id" => $mp,
                                 "slot" => (string)$vcIndex,
+                                "mount_name" => basename($mp),
                                 "container" => $dev,
                                 "device" => $dev,
                                 "mountpoint" => $mp
