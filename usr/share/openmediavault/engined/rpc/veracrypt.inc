@@ -1049,12 +1049,24 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             $activeMountsStatus = "⚪ No active VeraCrypt mounts detected";
         }
 
+        $mountedTextLines = [];
+        if ($installed) {
+            $volumes = $this->getMountedVolumes([], null);
+            foreach ($volumes as $v) {
+                $mountedTextLines[] = " - " . $v['mountpoint'] . " (Slot " . $v['slot'] . ")";
+            }
+        }
+        $mountedVolumesText = !empty($mountedTextLines)
+            ? implode("\n", $mountedTextLines)
+            : "No active VeraCrypt volumes mounted.";
+
         $response = [
             "installed" => $installed,
             "installed_str" => $installed ? "yes" : "no",
             "mounted" => $mounted,
             "active_mounts" => $activeMounts,
             "active_mounts_status" => $activeMountsStatus,
+            "mounted_volumes_text" => $mountedVolumesText,
             "vc_installed_status" => $installed ? "🟢 VeraCrypt installed" : "🔴 Please Install VeraCrypt!",
             "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
             "vc_bottom_notice" => "🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this."

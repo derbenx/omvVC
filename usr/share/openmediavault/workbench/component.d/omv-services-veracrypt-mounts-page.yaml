@@ -33,6 +33,12 @@ data:
           proxy:
             service: VeraCrypt
             method: getMountedVolumesList
+      - type: textarea
+        name: mounted_volumes_text
+        label: _("Active Mounted Volumes List")
+        readonly: true
+        value: ""
+        hint: _("Active mounted folders fetched dynamically.")
     buttons:
       - id: list_mounted
         text: _("List Mounted")
