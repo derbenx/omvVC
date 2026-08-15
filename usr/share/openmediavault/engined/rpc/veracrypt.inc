@@ -1073,12 +1073,13 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
 
         $volumes = [];
         $seenMountpoints = [];
+        $output = [];
 
         try {
             $cmd = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
             $cmd->setRedirect2to1();
             $cmd->execute($output, $exitStatus);
-            if ($exitStatus === 0 && !empty($output)) {
+            if (!empty($output)) {
                 foreach ($output as $line) {
                     $trimmedLine = trim($line);
                     if (empty($trimmedLine) || stripos($trimmedLine, "no volumes") !== false || stripos($trimmedLine, "error") !== false) {
@@ -1131,6 +1132,23 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             }
         } catch (\Exception $e) {
             // ignore error
+        }
+
+        // Safety net: ensure any mountpoint extracted by parseActiveMountPoints is included
+        if (!empty($output)) {
+            $parsedPoints = $this->parseActiveMountPoints($output);
+            foreach ($parsedPoints as $idx => $mp) {
+                if (!isset($seenMountpoints[$mp])) {
+                    $volumes[] = [
+                        "id" => $mp,
+                        "slot" => (string)($idx + 1),
+                        "container" => $mp,
+                        "device" => "",
+                        "mountpoint" => $mp
+                    ];
+                    $seenMountpoints[$mp] = true;
+                }
+            }
         }
 
         // Supplementary fallback via /proc/mounts
