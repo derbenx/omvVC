@@ -248,7 +248,8 @@
 		"id": "rpc.veracrypt.getMountedVolumes",
 		"params": {
 			"type": "object",
-			"properties": {}
+			"properties": {},
+			"additionalProperties": true
 		}
 	},
 	{
@@ -256,7 +257,8 @@
 		"id": "rpc.veracrypt.getMountedVolumesList",
 		"params": {
 			"type": "object",
-			"properties": {}
+			"properties": {},
+			"additionalProperties": true
 		}
 	},
 	{

@@ -1219,9 +1219,13 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                 }
                 $cmd = new \OMV\System\Process($script, [$mp]);
                 $cmd->setRedirect2to1();
-                $cmdLine = $cmd->getCommandLine();
-                $this->exec($cmdLine, $cmdOutput, $bgOutputFilename);
-                $output = array_merge($output, $cmdOutput);
+                $cmd->execute($cmdOutput, $exitStatus);
+                if (is_array($cmdOutput)) {
+                    foreach ($cmdOutput as $line) {
+                        file_put_contents($bgOutputFilename, $line . "\n", FILE_APPEND);
+                    }
+                    $output = array_merge($output, $cmdOutput);
+                }
             }
             return $output;
         });
