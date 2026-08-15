@@ -19,9 +19,15 @@ data:
               operator: eq
               arg0: "1"
               arg1: "2"
-      - type: checklist
+      - type: textInput
+        name: active_mounts_status
+        label: _("Active Mounts Status")
+        value: ""
+        readonly: true
+      - type: select
         name: mounted_volumes
         label: _("Select Active Mounts to Dismount")
+        multiple: true
         value: []
         store:
           proxy:

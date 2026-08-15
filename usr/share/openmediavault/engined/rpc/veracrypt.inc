@@ -306,12 +306,13 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         if ($installed) {
             try {
                 $cmdList = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
+                $cmdList->setRedirect2to1();
                 $cmdList->execute($listOutput, $listExitStatus);
                 if ($listExitStatus === 0) {
                     $activeMounts = $this->parseActiveMountPoints($listOutput);
                 }
             } catch (\Exception $e) {
-                // Ignore exception if veracrypt -l exits with non-zero (meaning no volumes are mounted)
+                // Ignore exception if veracrypt -l exits with non-zero
             }
         }
 
@@ -953,15 +954,15 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             try {
                 $volumes = $this->getMountedVolumes([], null);
                 if (empty($volumes)) {
-                    echo "No VeraCrypt volumes are currently mounted.\n";
+                    file_put_contents($bgOutputFilename, "No VeraCrypt volumes are currently mounted.\n", FILE_APPEND);
                 } else {
-                    echo "Currently mounted VeraCrypt folders:\n";
+                    file_put_contents($bgOutputFilename, "Currently mounted VeraCrypt folders:\n", FILE_APPEND);
                     foreach ($volumes as $vol) {
-                        echo " - Slot " . $vol['slot'] . ": " . $vol['mountpoint'] . " (Container: " . $vol['container'] . ")\n";
+                        file_put_contents($bgOutputFilename, " - Slot " . $vol['slot'] . ": " . $vol['mountpoint'] . " (Container: " . $vol['container'] . ")\n", FILE_APPEND);
                     }
                 }
             } catch (\Exception $e) {
-                echo "ERROR: " . $e->getMessage() . "\n";
+                file_put_contents($bgOutputFilename, "ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
             }
         });
     }
@@ -983,12 +984,13 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         if ($installed) {
             try {
                 $cmdList = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
+                $cmdList->setRedirect2to1();
                 $cmdList->execute($listOutput, $listExitStatus);
                 if ($listExitStatus === 0) {
                     $activeMounts = $this->parseActiveMountPoints($listOutput);
                 }
             } catch (\Exception $e) {
-                // Ignore exception if veracrypt -l exits with non-zero (meaning no volumes are mounted)
+                // Ignore exception if veracrypt -l exits with non-zero
             }
         }
 
@@ -1038,11 +1040,21 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             }
         }
 
+        $activeMountsCount = count($activeMounts);
+        if (!$installed) {
+            $activeMountsStatus = "🔴 VeraCrypt is NOT installed";
+        } elseif ($activeMountsCount > 0) {
+            $activeMountsStatus = sprintf("🟢 %d Active VeraCrypt Mount(s) Detected", $activeMountsCount);
+        } else {
+            $activeMountsStatus = "⚪ No active VeraCrypt mounts detected";
+        }
+
         $response = [
             "installed" => $installed,
             "installed_str" => $installed ? "yes" : "no",
             "mounted" => $mounted,
             "active_mounts" => $activeMounts,
+            "active_mounts_status" => $activeMountsStatus,
             "vc_installed_status" => $installed ? "🟢 VeraCrypt installed" : "🔴 Please Install VeraCrypt!",
             "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
             "vc_bottom_notice" => "🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this."
@@ -1060,11 +1072,13 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         $volumes = [];
+        $seenMountpoints = [];
 
         try {
             $cmd = new \OMV\System\Process("veracrypt", ["-t", "-l"]);
+            $cmd->setRedirect2to1();
             $cmd->execute($output, $exitStatus);
-            if ($exitStatus === 0) {
+            if ($exitStatus === 0 && !empty($output)) {
                 foreach ($output as $line) {
                     $trimmedLine = trim($line);
                     if (empty($trimmedLine) || stripos($trimmedLine, "no volumes") !== false || stripos($trimmedLine, "error") !== false) {
@@ -1111,11 +1125,37 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                             "device" => $device,
                             "mountpoint" => $mountpoint
                         ];
+                        $seenMountpoints[$mountpoint] = true;
                     }
                 }
             }
         } catch (\Exception $e) {
             // ignore error
+        }
+
+        // Supplementary fallback via /proc/mounts
+        if (file_exists('/proc/mounts') && is_readable('/proc/mounts')) {
+            $mountLines = file('/proc/mounts', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if (is_array($mountLines)) {
+                $vcIndex = 1;
+                foreach ($mountLines as $mLine) {
+                    if (preg_match('/^(\/dev\/mapper\/veracrypt\d+)\s+(\/\S+)\s+/i', trim($mLine), $mMatches)) {
+                        $dev = $mMatches[1];
+                        $mp = $mMatches[2];
+                        if (!isset($seenMountpoints[$mp])) {
+                            $volumes[] = [
+                                "id" => $mp,
+                                "slot" => (string)$vcIndex,
+                                "container" => $dev,
+                                "device" => $dev,
+                                "mountpoint" => $mp
+                            ];
+                            $seenMountpoints[$mp] = true;
+                            $vcIndex++;
+                        }
+                    }
+                }
+            }
         }
 
         return $volumes;
@@ -1174,7 +1214,9 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                     continue;
                 }
                 $cmd = new \OMV\System\Process($script, [$mp]);
-                $cmd->execute($cmdOutput, $exitStatus);
+                $cmd->setRedirect2to1();
+                $cmdLine = $cmd->getCommandLine();
+                $this->exec($cmdLine, $cmdOutput, $bgOutputFilename);
                 $output = array_merge($output, $cmdOutput);
             }
             return $output;
