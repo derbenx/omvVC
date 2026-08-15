@@ -24,21 +24,27 @@ data:
         label: _("Active Mounts Status")
         value: ""
         readonly: true
-      - type: select
-        name: mounted_volumes
-        label: _("Select Active Mounts to Dismount")
-        multiple: true
-        value: []
-        store:
-          proxy:
-            service: VeraCrypt
-            method: getMountedVolumesList
       - type: textarea
         name: mounted_volumes_text
         label: _("Active Mounted Volumes List")
         readonly: true
         value: ""
-        hint: _("Active mounted folders fetched dynamically.")
+        hint: _("Active mounted folders fetched dynamically on page load.")
+      - type: select
+        name: mounted_volume
+        label: _("Select Active Mount to Dismount")
+        value: ""
+        hint: _("Select a currently mounted volume from the list.")
+        store:
+          proxy:
+            service: VeraCrypt
+            method: getMountedVolumesList
+      - type: textInput
+        name: mounted_volume_custom
+        label: _("Or Enter Mountpoint Path Manually")
+        value: ""
+        hint: _("Optional: Enter absolute mountpoint path directly (e.g. /srv/dev-disk-by-uuid-.../vc/aii).")
+        autocomplete: "off"
     buttons:
       - id: list_mounted
         text: _("List Mounted")
@@ -59,13 +65,13 @@ data:
           type: taskDialog
           taskDialog:
             config:
-              title: _("Unmounting Selected VeraCrypt Volumes ...")
+              title: _("Unmounting Selected VeraCrypt Volume ...")
               startOnInit: true
               request:
                 service: VeraCrypt
                 method: unmountMultiple
                 params:
-                  mounted_volumes: "{{ mounted_volumes }}"
+                  mounted_volumes: ["{{ mounted_volume }}", "{{ mounted_volume_custom }}"]
       - id: unmount_all
         text: _("Unmount All")
         icon: "mdi:stop-circle-multiple-outline"

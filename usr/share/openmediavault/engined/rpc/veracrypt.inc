@@ -1067,6 +1067,7 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
             "active_mounts" => $activeMounts,
             "active_mounts_status" => $activeMountsStatus,
             "mounted_volumes_text" => $mountedVolumesText,
+            "mounted_volumes" => [],
             "vc_installed_status" => $installed ? "🟢 VeraCrypt installed" : "🔴 Please Install VeraCrypt!",
             "vc_not_installed_status" => "🔴 Please Install VeraCrypt!",
             "vc_bottom_notice" => "🔴 VeraCrypt is NOT installed. Please install veracrypt to enable this."
@@ -1205,10 +1206,12 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
                 $label .= " (Slot " . $vol['slot'] . ")";
             }
             $volumes[] = [
+                "value" => $vol['mountpoint'],
+                "label" => $label,
                 "id" => $vol['mountpoint'],
                 "name" => $label,
-                "value" => $vol['mountpoint'],
-                "label" => $label
+                0 => $vol['mountpoint'],
+                1 => $label
             ];
         }
         return $volumes;
