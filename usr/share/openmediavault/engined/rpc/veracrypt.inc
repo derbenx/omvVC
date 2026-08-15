@@ -1168,13 +1168,17 @@ class OMVRpcServiceVeraCrypt extends \OMV\Rpc\ServiceAbstract
         $this->checkVeraCryptInstalled();
 
         $volumes = [];
-        $mounted = $this->getMountedVolumes([], $context);
+        $mounted = $this->getMountedVolumes([], null);
         foreach ($mounted as $vol) {
+            $label = $vol['mountpoint'];
+            if (!empty($vol['slot'])) {
+                $label .= " (Slot " . $vol['slot'] . ")";
+            }
             $volumes[] = [
                 "id" => $vol['mountpoint'],
-                "name" => $vol['mountpoint'],
+                "name" => $label,
                 "value" => $vol['mountpoint'],
-                "label" => $vol['mountpoint']
+                "label" => $label
             ];
         }
         return $volumes;
