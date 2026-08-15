@@ -10,6 +10,9 @@ data:
       - dir: asc
         prop: slot
     store:
+      hasDisableServerSideFiltering: true
+      hasDisableServerSidePaging: true
+      hasDisableServerSideSorting: true
       proxy:
         service: VeraCrypt
         method: getMountedVolumes
